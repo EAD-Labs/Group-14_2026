@@ -152,3 +152,120 @@
   margin-right: 7px;
   color: var(--blue);
 }
+
+.kmeans .annotation.fbGood {
+  background: #e4f0e8;
+  border-left-color: var(--good);
+}
+
+.kmeans .annotation.fbBad {
+  background: var(--rust-soft);
+  border-left-color: var(--rust);
+}
+
+.kmeans .annotation.fbGood .tag {
+  color: var(--good);
+}
+
+.kmeans .annotation.fbBad .tag {
+  color: var(--rust);
+}
+
+.kmeans .guessBtn {
+  background: var(--blue-soft);
+  border: 1px solid var(--blue) !important;
+  color: var(--blue);
+  font-size: 13px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.kmeans .guessBtn:hover {
+  background: #d5e2ee;
+}
+
+.kmeans .guessBtn.active {
+  background: var(--blue);
+  color: #fff;
+}
+
+.kmeans .storyText {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+
+.kmeans .choiceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.kmeans .stageActions {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+}
+
+.kmeans .termList {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.kmeans .reflectBox {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.kmeans .sectionLabel {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.kmeans .formalBox {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 14px 16px;
+  margin: 0 0 14px;
+}
+
+.kmeans .formalBox .formalLabel {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.kmeans .formalBox .formalTerm {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  font-size: 15px;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.kmeans .formalBox p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.kmeans .formalBox p:last-child {
+  margin-bottom: 0;
+}
+
+.kmeans .formalBox .formula {
+  display: block;
+  font-family: 'Lora', serif;
+  font-size: 14.5px;
+  margin: 6px 0;
+}

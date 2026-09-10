@@ -287,3 +287,176 @@
   gap: 10px;
   margin-top: 20px;
 }
+
+/* journey / story */
+.paper .journeyBox {
+  padding: 26px;
+  max-width: 640px;
+}
+
+.paper .storyText {
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+
+.paper .choiceRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 16px;
+}
+
+.paper .choiceBtn {
+  background: var(--blue-soft);
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  font-size: 13px;
+  padding: 9px 12px;
+  text-align: left;
+  border-radius: 5px;
+}
+
+.paper .choiceBtn:hover:not(:disabled) {
+  background: #d5e2ee;
+}
+
+.paper .choiceBtn:disabled {
+  cursor: default;
+}
+
+.paper .stageActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.paper .nameInput {
+  font-family: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper-card);
+  color: var(--ink);
+  border-radius: 5px;
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 4px;
+}
+
+.paper .nameInput:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+.paper .storyAnnotation {
+  margin: 10px 0 16px;
+  padding: 12px 14px;
+  background: var(--blue-soft);
+  border-left: 3px solid var(--blue);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.paper .storyAnnotation.fbGood {
+  background: #e4f0e8;
+  border-left-color: var(--good);
+}
+
+.paper .storyAnnotation.fbBad {
+  background: var(--rust-soft);
+  border-left-color: var(--rust);
+}
+
+.paper .storyAnnotation .tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 7px;
+  color: var(--blue);
+}
+
+.paper .storyAnnotation.fbGood .tag {
+  color: var(--good);
+}
+
+.paper .storyAnnotation.fbBad .tag {
+  color: var(--rust);
+}
+
+.paper .exampleTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 0 0 14px;
+}
+
+.paper .exampleTable th,
+.paper .exampleTable td {
+  border-bottom: 1px solid var(--line);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.paper .exampleTable th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.paper .newRow td {
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.paper .termCallout {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 14px;
+  margin: 0 0 14px;
+  font-family: 'Lora', serif;
+  font-size: 15px;
+  text-align: center;
+}
+
+.paper .formalBox {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 14px 16px;
+  margin: 0 0 14px;
+}
+
+.paper .formalBox .formalLabel {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.paper .formalBox .formalTerm {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  font-size: 15px;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.paper .formalBox p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.paper .formalBox p:last-child {
+  margin-bottom: 0;
+}
+
+.paper .formalBox .formula {
+  display: block;
+  font-family: 'Lora', serif;
+  font-size: 14.5px;
+  margin: 6px 0;
+}
