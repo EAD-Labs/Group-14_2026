@@ -1,0 +1,271 @@
+.kmeans {
+  --ink: #23262b;
+  --muted: #726c5d;
+  --line: #dcd5c0;
+  --paper: #f3efe4;
+  --paper-card: #fcfaf4;
+  --blue: #2f5d8a;
+  --blue-soft: #e4ecf3;
+  --rust: #a6462d;
+  --rust-soft: #f3e4df;
+  --good: #3f7d53;
+
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  border: 1px solid var(--line);
+  background: var(--paper-card);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+@media (max-width: 720px) {
+  .kmeans {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kmeans button {
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: 500;
+}
+
+.kmeans-controls {
+  padding: 20px 18px;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+@media (max-width: 720px) {
+  .kmeans-controls {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+.kmeans-main {
+  padding: 20px 22px;
+}
+
+.kmeans .btnCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kmeans .btnCol button {
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+}
+
+.kmeans .btnP {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue) !important;
+}
+
+.kmeans .btnP:hover:not(:disabled) {
+  background: #274d73;
+}
+
+.kmeans .btnP:disabled {
+  background: #a9b9c7;
+  border-color: #a9b9c7 !important;
+  cursor: not-allowed;
+}
+
+.kmeans .btnG {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line) !important;
+}
+
+.kmeans .btnG:hover:not(:disabled) {
+  background: #efeadb;
+}
+
+.kmeans .btnG:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.kmeans .note {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.kmeans .chartRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.kmeans .chartTitle {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.kmeans .readouts {
+  display: flex;
+  gap: 16px;
+  font-size: 12.5px;
+}
+
+.kmeans .readouts b {
+  font-weight: 600;
+}
+
+.kmeans svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.kmeans .axLbl {
+  font-size: 10.5px;
+  fill: var(--muted);
+  font-family: 'Inter', sans-serif;
+}
+
+.kmeans .annotation {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--blue-soft);
+  border-left: 3px solid var(--blue);
+  font-size: 13px;
+  line-height: 1.55;
+  min-height: 18px;
+}
+
+.kmeans .annotation .tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 7px;
+  color: var(--blue);
+}
+
+.kmeans .annotation.fbGood {
+  background: #e4f0e8;
+  border-left-color: var(--good);
+}
+
+.kmeans .annotation.fbBad {
+  background: var(--rust-soft);
+  border-left-color: var(--rust);
+}
+
+.kmeans .annotation.fbGood .tag {
+  color: var(--good);
+}
+
+.kmeans .annotation.fbBad .tag {
+  color: var(--rust);
+}
+
+.kmeans .guessBtn {
+  background: var(--blue-soft);
+  border: 1px solid var(--blue) !important;
+  color: var(--blue);
+  font-size: 13px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.kmeans .guessBtn:hover {
+  background: #d5e2ee;
+}
+
+.kmeans .guessBtn.active {
+  background: var(--blue);
+  color: #fff;
+}
+
+.kmeans .storyText {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+
+.kmeans .choiceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.kmeans .stageActions {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+}
+
+.kmeans .termList {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.kmeans .reflectBox {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.kmeans .sectionLabel {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.kmeans .formalBox {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 14px 16px;
+  margin: 0 0 14px;
+}
+
+.kmeans .formalBox .formalLabel {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.kmeans .formalBox .formalTerm {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  font-size: 15px;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.kmeans .formalBox p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.kmeans .formalBox p:last-child {
+  margin-bottom: 0;
+}
+
+.kmeans .formalBox .formula {
+  display: block;
+  font-family: 'Lora', serif;
+  font-size: 14.5px;
+  margin: 6px 0;
+}

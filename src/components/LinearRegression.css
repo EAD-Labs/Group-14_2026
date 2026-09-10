@@ -1,0 +1,414 @@
+.linreg {
+  --ink: #23262b;
+  --muted: #726c5d;
+  --line: #dcd5c0;
+  --paper: #f3efe4;
+  --paper-card: #fcfaf4;
+  --blue: #2f5d8a;
+  --blue-soft: #e4ecf3;
+  --rust: #a6462d;
+  --rust-soft: #f3e4df;
+  --good: #3f7d53;
+
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  border: 1px solid var(--line);
+  background: var(--paper-card);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+@media (max-width: 720px) {
+  .linreg {
+    grid-template-columns: 1fr;
+  }
+}
+
+.linreg button {
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: 500;
+}
+
+.linreg-controls {
+  padding: 20px 18px;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+@media (max-width: 720px) {
+  .linreg-controls {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+.linreg-main {
+  padding: 20px 22px;
+}
+
+.linreg .field label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+
+.linreg .field .value {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.linreg input[type='range'] {
+  width: 100%;
+  accent-color: var(--blue);
+}
+
+.linreg .toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.linreg .switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 21px;
+  flex: none;
+}
+
+.linreg .switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.linreg .pill-slider {
+  position: absolute;
+  inset: 0;
+  background: #d9d2be;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.linreg .pill-slider::before {
+  content: '';
+  position: absolute;
+  height: 15px;
+  width: 15px;
+  left: 3px;
+  top: 3px;
+  background: var(--paper-card);
+  border-radius: 50%;
+  transition: transform 0.15s;
+}
+
+.linreg .switch input:checked + .pill-slider {
+  background: var(--blue);
+}
+
+.linreg .switch input:checked + .pill-slider::before {
+  transform: translateX(15px);
+}
+
+.linreg .btnCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.linreg .btnCol button {
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+}
+
+.linreg .btnP {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue) !important;
+}
+
+.linreg .btnP:hover:not(:disabled) {
+  background: #274d73;
+}
+
+.linreg .btnP:disabled {
+  background: #a9b9c7;
+  border-color: #a9b9c7 !important;
+  cursor: not-allowed;
+}
+
+.linreg .btnG {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line) !important;
+}
+
+.linreg .btnG:hover:not(:disabled) {
+  background: #efeadb;
+}
+
+.linreg .btnG:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.linreg .guessBtn {
+  background: var(--blue-soft);
+  border-color: var(--blue) !important;
+  color: var(--blue);
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.linreg .guessBtn:hover {
+  background: #d5e2ee;
+}
+
+.linreg .note {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.linreg .chartRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.linreg .chartTitle {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.linreg .readouts {
+  display: flex;
+  gap: 16px;
+  font-size: 12.5px;
+}
+
+.linreg .readouts b {
+  font-weight: 600;
+}
+
+.linreg .mseVal {
+  color: var(--rust);
+}
+
+.linreg .mseVal.improving {
+  color: var(--good);
+}
+
+.linreg svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.linreg .axLbl {
+  font-size: 10.5px;
+  fill: var(--muted);
+  font-family: 'Inter', sans-serif;
+}
+
+.linreg .annotation {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--blue-soft);
+  border-left: 3px solid var(--blue);
+  font-size: 13px;
+  line-height: 1.55;
+  min-height: 18px;
+}
+
+.linreg .annotation.fbGood {
+  background: #e4f0e8;
+  border-left-color: var(--good);
+}
+
+.linreg .annotation.fbBad {
+  background: var(--rust-soft);
+  border-left-color: var(--rust);
+}
+
+.linreg .annotation .tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 7px;
+  color: var(--blue);
+}
+
+.linreg .annotation.fbGood .tag {
+  color: var(--good);
+}
+
+.linreg .annotation.fbBad .tag {
+  color: var(--rust);
+}
+
+.linreg .storyText {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 14px;
+}
+
+.linreg .choiceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.linreg .stageActions {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+}
+
+.linreg .termList {
+  margin: 0 0 16px;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.linreg .termList b {
+  font-weight: 600;
+}
+
+.linreg .eqBox {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 14px;
+  font-size: 17px;
+  margin: 0 0 12px;
+  text-align: center;
+  font-family: 'Lora', serif;
+}
+
+.linreg .reflectBox {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.linreg .sectionLabel {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.linreg .formalBox {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 14px 16px;
+  margin: 0 0 14px;
+}
+
+.linreg .formalBox .formalLabel {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.linreg .formalBox .formalTerm {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  font-size: 15px;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.linreg .formalBox p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.linreg .formalBox p:last-child {
+  margin-bottom: 0;
+}
+
+.linreg .formalBox .formula {
+  display: block;
+  font-family: 'Lora', serif;
+  font-size: 14.5px;
+  margin: 6px 0;
+}
+
+.linreg .playgroundGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 14px 0 8px;
+}
+
+@media (max-width: 720px) {
+  .linreg .playgroundGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.linreg .tinyChartLabel {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+
+.linreg .tinyCurve {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.linreg .stepDots {
+  display: flex;
+  gap: 6px;
+  margin: 2px 0 8px;
+}
+
+.linreg .stepDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.linreg .stepDot.done {
+  background: var(--good);
+}
+
+.linreg .stepDot.active {
+  background: var(--blue);
+  transform: scale(1.3);
+}
+
+.linreg .connectNote {
+  margin: 8px 0 0 !important;
+  padding: 8px 10px;
+  background: var(--blue-soft);
+  border-left: 3px solid var(--blue);
+  font-size: 12.5px !important;
+  line-height: 1.5;
+  font-style: italic;
+}

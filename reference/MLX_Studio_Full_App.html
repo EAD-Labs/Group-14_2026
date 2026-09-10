@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLX Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EFE4; --paper-card:#FCFAF4; --ink:#23262B; --muted:#726C5D;
+    --line:#DCD5C0; --blue:#2F5D8A; --blue-soft:#E4ECF3; --rust:#A6462D;
+    --rust-soft:#F3E4DF; --good:#3F7D53;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'Inter',system-ui,sans-serif; color:var(--ink); background-color:var(--paper);
+    background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:28px 28px; min-height:100vh;
+  }
+  .wrap{ max-width:960px; margin:0 auto; padding:0 20px 60px; }
+  a, button{ font-family:inherit; }
+  button{ cursor:pointer; border-radius:5px; font-weight:500; }
+  button:focus-visible, input:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
+
+  /* nav */
+  .topbar{ display:flex; justify-content:space-between; align-items:center; padding:20px 0 14px; }
+  .brand{ font-family:'Lora',serif; font-weight:600; font-size:19px; }
+  .brand button{ background:none; border:none; font:inherit; color:var(--ink); padding:0; cursor:pointer; }
+  .modeToggle{ display:flex; gap:6px; }
+  .modeToggle button{
+    border:1px solid var(--line); background:var(--paper-card); font-size:12.5px; padding:6px 13px; border-radius:20px; color:var(--muted);
+  }
+  .modeToggle button.active{ border-color:var(--blue); background:var(--blue-soft); color:var(--blue); }
+  .crumb{ font-size:12.5px; color:var(--muted); margin-bottom:14px; }
+  .crumb button{ background:none; border:none; color:var(--blue); font-size:12.5px; padding:0; cursor:pointer; text-decoration:underline; }
+
+  .board{ background:var(--paper-card); border:1px solid var(--line); box-shadow:0 1px 0 var(--line); }
+
+  /* home */
+  h1{ font-family:'Lora',serif; font-weight:600; font-size:28px; margin:0 0 6px; letter-spacing:-0.01em; }
+  .sub{ color:var(--muted); font-size:14.5px; margin:0 0 20px; max-width:60ch; line-height:1.5; }
+  .cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:720px){ .cards{ grid-template-columns:1fr; } }
+  .card{ border:1px solid var(--line); background:var(--paper-card); padding:16px; display:flex; flex-direction:column; }
+  .card .ico{ font-size:22px; margin-bottom:8px; }
+  .card h3{ font-family:'Lora',serif; font-size:15.5px; font-weight:600; margin:0 0 6px; }
+  .card p{ font-size:12.5px; color:var(--muted); line-height:1.5; margin:0 0 14px; flex:1; }
+  .card button{ background:var(--blue); color:#fff; border:1px solid var(--blue); padding:8px 0; font-size:13px; }
+  .card button:hover{ background:#274d73; }
+
+  /* overview */
+  .ovBox{ padding:24px; max-width:520px; }
+  .ovBox h1{ font-size:24px; }
+  .objList, .preList{ margin:0 0 16px; padding:0; list-style:none; font-size:13.5px; }
+  .objList li{ margin-bottom:6px; padding-left:14px; position:relative; color:var(--ink); }
+  .objList li::before{ content:"—"; position:absolute; left:0; color:var(--muted); }
+  .preList li{ display:flex; gap:8px; align-items:flex-start; margin-bottom:6px; color:var(--ink); }
+  .preList .box{ width:13px; height:13px; border:1px solid var(--ink); margin-top:2px; flex:none; }
+  .sectionLabel{ font-size:11.5px; color:var(--muted); text-transform:none; margin:0 0 8px; }
+  .ovFooter{ display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+  .pill{ font-size:11px; color:var(--muted); border:1px solid var(--line); border-radius:20px; padding:4px 11px; }
+  .primaryBtn{ background:var(--blue); color:#fff; border:1px solid var(--blue); padding:9px 20px; font-size:13.5px; }
+  .primaryBtn:hover{ background:#274d73; }
+  .ghostBtn{ background:transparent; color:var(--ink); border:1px solid var(--line); padding:9px 16px; font-size:13px; }
+  .ghostBtn:hover{ background:#EFEADB; }
+
+  /* playground */
+  .pgLayout{ display:grid; grid-template-columns:220px 1fr 240px; gap:0; }
+  @media (max-width:900px){ .pgLayout{ grid-template-columns:1fr; } }
+  .pgControls, .pgAI{ padding:20px 18px; }
+  .pgControls{ border-right:1px solid var(--line); display:flex; flex-direction:column; gap:18px; }
+  .pgAI{ border-left:1px solid var(--line); display:flex; flex-direction:column; gap:10px; }
+  @media (max-width:900px){ .pgControls, .pgAI{ border:none; border-top:1px solid var(--line); } }
+  .pgMain{ padding:20px 22px; }
+  .field label{ display:block; font-size:12px; color:var(--muted); margin-bottom:7px; }
+  .field .value{ color:var(--ink); font-weight:600; }
+  input[type=range]{ width:100%; accent-color:var(--blue); }
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .switch{ position:relative; width:36px; height:21px; flex:none; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .pill-slider{ position:absolute; inset:0; background:#D9D2BE; border-radius:999px; cursor:pointer; }
+  .pill-slider::before{ content:""; position:absolute; height:15px; width:15px; left:3px; top:3px; background:var(--paper-card); border-radius:50%; transition:transform .15s; }
+  .switch input:checked + .pill-slider{ background:var(--blue); }
+  .switch input:checked + .pill-slider::before{ transform:translateX(15px); }
+  .btnCol{ display:flex; flex-direction:column; gap:8px; }
+  .btnCol button{ font-size:13px; padding:8px 12px; border:1px solid transparent; }
+  .btnP{ background:var(--blue); color:#fff; border-color:var(--blue) !important; }
+  .btnP:hover{ background:#274d73; }
+  .btnP:disabled{ background:#A9B9C7; border-color:#A9B9C7 !important; cursor:not-allowed; }
+  .btnG{ background:transparent; color:var(--ink); border-color:var(--line) !important; }
+  .btnG:hover{ background:#EFEADB; }
+  .guessBtn{ background:var(--blue-soft); border-color:var(--blue) !important; color:var(--blue); font-size:13px; padding:8px 10px; }
+  .guessBtn:hover{ background:#D5E2EE; }
+  .note{ font-size:11.5px; color:var(--muted); line-height:1.5; margin:0; }
+
+  .chartRow{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .chartTitle{ font-size:12.5px; color:var(--muted); }
+  .readouts{ display:flex; gap:16px; font-size:12.5px; }
+  .readouts b{ font-weight:600; }
+  .mseVal{ color:var(--rust); }
+  .mseVal.improving{ color:var(--good); }
+  svg{ width:100%; height:auto; display:block; }
+  .axLbl{ font-size:10.5px; fill:var(--muted); font-family:'Inter',sans-serif; }
+  .annotation{ margin-top:14px; padding:12px 14px; background:var(--blue-soft); border-left:3px solid var(--blue); font-size:13px; line-height:1.55; min-height:18px; }
+  .annotation.fbGood{ background:#E4F0E8; border-left-color:var(--good); }
+  .annotation.fbBad{ background:var(--rust-soft); border-left-color:var(--rust); }
+  .annotation .tag{ display:inline-block; font-size:11px; font-weight:600; margin-right:7px; color:var(--blue); }
+  .fbGood .tag{ color:var(--good); } .fbBad .tag{ color:var(--rust); }
+
+  .aiHead{ font-size:12.5px; font-weight:600; display:flex; align-items:center; gap:6px; }
+  .chip{ display:block; width:100%; text-align:left; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:8px 11px; font-size:12px; color:var(--ink); margin-bottom:6px; }
+  .chip:hover{ background:#EFEADB; }
+  .aiAnswer{ background:var(--blue-soft); border-left:3px solid var(--blue); padding:10px 11px; font-size:12px; line-height:1.5; margin-top:4px; }
+  .demoBadge{ display:inline-block; background:var(--rust-soft); color:var(--rust); font-size:10.5px; padding:2px 8px; border-radius:10px; margin-bottom:8px; }
+
+  /* quiz */
+  .quizBox{ padding:24px; max-width:560px; }
+  .qCard{ border:1px solid var(--line); padding:16px; margin-bottom:14px; background:var(--paper-card); }
+  .qPrompt{ font-size:14px; margin:0 0 12px; font-weight:500; }
+  .qOpt{ display:block; width:100%; text-align:left; background:var(--paper); border:1px solid var(--line); padding:9px 12px; font-size:13px; margin-bottom:7px; border-radius:4px; color:var(--ink); }
+  .qOpt:hover{ background:#EFEADB; }
+  .qOpt.correct{ background:#E4F0E8; border-color:var(--good); }
+  .qOpt.wrong{ background:var(--rust-soft); border-color:var(--rust); }
+  .qOpt:disabled{ cursor:default; }
+  .qExplain{ font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.5; }
+
+  /* summary */
+  .sumBox{ padding:26px; max-width:480px; text-align:left; }
+  .sumStat{ display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .sumStat b{ font-weight:600; }
+
+  footer.note{ margin-top:16px; }
+  .teachBadge{ display:inline-block; background:var(--blue-soft); color:var(--blue); font-size:11px; padding:3px 10px; border-radius:12px; margin-bottom:14px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+
+/* ---------------- data & content ---------------- */
+
+const TOPICS = {
+  linreg: { name:'Linear regression', ico:'📈', blurb:'Fit a line, tune parameters, see the error change.',
+    objectives:['Explain what the line is trying to minimise','Predict the effect of changing the slope','Read a residual plot'],
+    prereqs:['Basic coordinate geometry'], time:'~15 min' },
+  kmeans: { name:'K-means clustering', ico:'✳︎', blurb:'Group points, watch centroids move each iteration.',
+    objectives:['Explain how a point is assigned to a cluster','Predict how a centroid will move','Recognise convergence'],
+    prereqs:['Basic coordinate geometry'], time:'~15 min' },
+  perceptron: { name:'Perceptron basics', ico:'◧', blurb:'Watch a decision boundary learn to separate two groups.',
+    objectives:['Explain what "misclassified" means','Predict how the boundary shifts after a mistake','See why convergence isn\'t always smooth'],
+    prereqs:['Basic coordinate geometry','Linear regression (recommended first)'], time:'~15 min' }
+};
+
+const HINTS = {
+  linreg:[
+    {q:'Why did the slope change?', a:'Check the dashed residual lines after your last step: are they longer on the left or the right of the chart? Gradient descent nudges the line toward whichever side still has the biggest gaps.'},
+    {q:'What does MSE mean?', a:'MSE is the average of how far off each point\'s prediction is, squared. A smaller number means the line sits closer to the actual points, on average.'},
+    {q:'How do I know it has converged?', a:'Watch the MSE across a few steps. Once it stops changing by more than a tiny amount, the line has settled into its best fit for this data.'}
+  ],
+  kmeans:[
+    {q:'Why did a centroid jump?', a:'A centroid is the average position of whichever points are currently assigned to it. When the assignment changes, so does the average, sometimes by a lot.'},
+    {q:'How does a point get assigned?', a:'Each point joins whichever centroid it\'s closest to, by straight-line distance. Try comparing a point near the middle to both centroids yourself.'},
+    {q:'When does K-means stop?', a:'When an iteration finishes and no centroid moved (or moved only a little), the clusters have stabilised.'}
+  ],
+  perceptron:[
+    {q:'Why is the boundary still moving?', a:'As long as any point sits on the wrong side of the line, the perceptron keeps nudging the boundary toward that point\'s correct side. Check the error count above the chart.'},
+    {q:'What does misclassified mean?', a:'It means the point is on the wrong side of the current decision boundary, a rust point sitting on the blue side of the line, for example.'},
+    {q:'Why didn\'t the error count go down that time?', a:'Perceptron corrects one mistake at a time, and that correction can occasionally push a different point onto the wrong side. It still reaches zero errors eventually for data this clearly separated.'}
+  ]
+};
+
+const QUIZ = {
+  linreg:[
+    {prompt:'If the fitted line sits below most points on the right side of the chart, what will gradient descent do to the slope next?',
+     opts:['Increase it','Decrease it','Leave it unchanged'], correct:0,
+     explain:'Points above the line on the right pull it upward, so the slope grows to close that gap.'},
+    {prompt:'What does a lower MSE mean?',
+     opts:['The line fits the data better','The learning rate is too high','The dataset has more points'], correct:0,
+     explain:'MSE measures average squared prediction error, so a smaller value means a closer fit.'}
+  ],
+  kmeans:[
+    {prompt:'After points are reassigned to their nearest centroid, what happens next?',
+     opts:['Centroids are recomputed as the mean of their assigned points','The algorithm stops immediately','A new cluster is added'], correct:0,
+     explain:'K-means alternates between assigning points and recomputing centroids as the mean of each group.'},
+    {prompt:'K-means has converged when...',
+     opts:['Centroids stop moving between iterations','The dataset gets sorted','All points belong to one cluster'], correct:0,
+     explain:'Convergence means another iteration would not change the assignments or centroid positions.'}
+  ],
+  perceptron:[
+    {prompt:'A perceptron updates its weights when...',
+     opts:['A point is misclassified','Every single step, regardless of correctness','Only on the very first step'], correct:0,
+     explain:'Updates only happen in response to a mistake; correctly classified points leave the weights untouched.'},
+    {prompt:'Why might the number of misclassified points not shrink on every single step?',
+     opts:['Perceptron corrects one mistake at a time, which can temporarily disturb another point','The algorithm is broken','The dataset changes each step'], correct:0,
+     explain:'Fixing one point\'s classification can flip the boundary just enough to misclassify a different point, briefly.'}
+  ]
+};
+
+/* ---------------- app state ---------------- */
+
+const APP = { mode:'student', view:'home', topic:null, quizIdx:0, quizCorrect:0, quizDone:false, steps:0 };
+let simTimer = null;
+
+function go(view, topic){
+  if(simTimer){ clearTimeout(simTimer); simTimer = null; }
+  APP.view = view;
+  if(topic !== undefined) APP.topic = topic;
+  if(view==='quiz'){ APP.quizIdx = 0; APP.quizCorrect = 0; APP.quizDone = false; }
+  render();
+}
+
+/* ---------------- shell ---------------- */
+
+function shell(inner){
+  const crumb = APP.view==='home' ? '' :
+    `<div class="crumb"><button data-action="home">Home</button> ${APP.topic ? '&nbsp;/&nbsp;' + TOPICS[APP.topic].name : ''}</div>`;
+  return `
+    <div class="topbar">
+      <div class="brand"><button data-action="home">MLX Studio</button></div>
+      <div class="modeToggle">
+        <button data-action="setMode" data-mode="student" class="${APP.mode==='student'?'active':''}">Student mode</button>
+        <button data-action="setMode" data-mode="teacher" class="${APP.mode==='teacher'?'active':''}">Teacher mode</button>
+      </div>
+    </div>
+    ${crumb}
+    ${inner}
+  `;
+}
+
+/* ---------------- home ---------------- */
+
+function renderHome(){
+  const cards = Object.keys(TOPICS).map(key=>{
+    const t = TOPICS[key];
+    return `<div class="card">
+      <div class="ico">${t.ico}</div>
+      <h3>${t.name}</h3>
+      <p>${t.blurb}</p>
+      <button data-action="startTopic" data-topic="${key}">${APP.mode==='teacher' ? 'Open demo' : 'Start'}</button>
+    </div>`;
+  }).join('');
+  return shell(`
+    <h1>Choose a topic to begin</h1>
+    <p class="sub">${APP.mode==='teacher'
+      ? 'Demonstration mode: larger visuals, fewer controls, and a rapid-fire check-in instead of a full quiz.'
+      : 'Read a short overview, then step through an interactive simulation at your own pace.'}</p>
+    <div class="cards">${cards}</div>
+  `);
+}
+
+/* ---------------- overview ---------------- */
+
+function renderOverview(){
+  const t = TOPICS[APP.topic];
+  return shell(`
+    <div class="board ovBox">
+      ${APP.mode==='teacher' ? '<span class="teachBadge">Demonstration mode</span><br>' : ''}
+      <h1>${t.name}</h1>
+      <p class="sub">${t.blurb}</p>
+      <div class="sectionLabel">Learning objectives</div>
+      <ul class="objList">${t.objectives.map(o=>`<li>${o}</li>`).join('')}</ul>
+      <div class="sectionLabel">Prerequisites</div>
+      <ul class="preList">${t.prereqs.map(p=>`<li><span class="box"></span>${p}</li>`).join('')}</ul>
+      <div class="ovFooter">
+        <span class="pill">${t.time}</span>
+        <button class="primaryBtn" data-action="toPlayground">${APP.mode==='teacher' ? 'Start demonstration' : 'Start learning'}</button>
+      </div>
+    </div>
+  `);
+}
+
+/* ---------------- playground shell (per-topic sim mounts here) ---------------- */
+
+function renderPlayground(){
+  const t = TOPICS[APP.topic];
+  const hints = HINTS[APP.topic];
+  const chips = hints.map((h,i)=>`<button class="chip" data-action="aiHint" data-idx="${i}">${h.q}</button>`).join('');
+
+  let controlsHtml = '';
+  if(APP.topic==='linreg'){
+    controlsHtml = `
+      <div class="field">
+        <label for="lr">Learning rate: <span class="value" id="lrVal">0.30</span></label>
+        <input type="range" id="lr" min="0.05" max="0.6" step="0.01" value="0.3">
+      </div>
+      <div class="field">
+        <div class="toggle-row">
+          <label for="predictToggle" style="margin-bottom:0;">Predict before each step</label>
+          <span class="switch"><input type="checkbox" id="predictToggle" checked><span class="pill-slider" onclick="document.getElementById('predictToggle').click()"></span></span>
+        </div>
+        <p class="note" style="margin-top:8px;">On: guess which way the slope will move. Off: just watch each step.</p>
+      </div>
+      <div class="btnCol" id="stepControls">
+        <button class="btnP" id="stepBtn">Step forward</button>
+        <button class="btnG" id="runBtn">Run to convergence</button>
+        <button class="btnG" id="resetBtn">Reset to step 0</button>
+      </div>
+      <div class="btnCol" id="guessControls" style="display:none;">
+        <p class="note" style="margin:0 0 2px;">Will the slope go up or down?</p>
+        <button class="guessBtn" data-guess="up">Slope will go up</button>
+        <button class="guessBtn" data-guess="down">Slope will go down</button>
+      </div>`;
+  } else {
+    controlsHtml = `
+      <p class="note">${APP.mode==='teacher' ? 'Preset dataset, fixed for this demonstration.' : 'Dataset: preset, fixed for this prototype.'}</p>
+      <div class="btnCol" id="stepControls">
+        <button class="btnP" id="stepBtn">Step forward</button>
+        <button class="btnG" id="runBtn">Run to convergence</button>
+        <button class="btnG" id="resetBtn">Reset to step 0</button>
+      </div>`;
+  }
+
+  return shell(`
+    <div class="board">
+      <div class="pgLayout">
+        <div class="pgControls">
+          ${APP.mode==='teacher' ? '<span class="teachBadge">Demonstration mode</span>' : ''}
+          ${controlsHtml}
+        </div>
+        <div class="pgMain">
+          <div class="chartRow">
+            <span class="chartTitle">${chartTitleFor(APP.topic)}</span>
+            <div class="readouts" id="readouts"></div>
+          </div>
+          <svg viewBox="0 0 560 340" id="chart" role="img" aria-label="Interactive simulation chart"></svg>
+          <div class="annotation" id="annotation">Press "Step forward" to begin.</div>
+          <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+            ${APP.mode==='teacher'
+              ? '<button class="ghostBtn" data-action="rapidFire">Ask a rapid-fire question</button>'
+              : '<button class="primaryBtn" data-action="toQuiz">Take the quiz</button>'}
+          </div>
+        </div>
+        <div class="pgAI">
+          <div class="aiHead">🤖 AI assistant</div>
+          <span class="demoBadge">Demo hints</span>
+          <p class="note">Scripted for this prototype. A connected model would generate these live once the backend is built.</p>
+          ${chips}
+          <div id="aiAnswer"></div>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function chartTitleFor(topic){
+  if(topic==='linreg') return 'Area vs. price, 10 sampled listings';
+  if(topic==='kmeans') return '16 points, 2 clusters';
+  return '12 points, 2 classes';
+}
+
+/* ---------------- quiz ---------------- */
+
+function renderQuiz(){
+  const bank = QUIZ[APP.topic];
+  if(APP.quizDone){
+    return shell(`
+      <div class="board quizBox">
+        <h1>Quiz complete</h1>
+        <p class="sub">You scored ${APP.quizCorrect} out of ${bank.length} on ${TOPICS[APP.topic].name}.</p>
+        <button class="primaryBtn" data-action="toSummary">Continue</button>
+      </div>
+    `);
+  }
+  const q = bank[APP.quizIdx];
+  return shell(`
+    <div class="board quizBox">
+      <h1>${TOPICS[APP.topic].name} — check your understanding</h1>
+      <p class="sub">Question ${APP.quizIdx+1} of ${bank.length}</p>
+      <div class="qCard">
+        <p class="qPrompt">${q.prompt}</p>
+        <div id="qOpts">
+          ${q.opts.map((o,i)=>`<button class="qOpt" data-action="answerQuiz" data-idx="${i}">${o}</button>`).join('')}
+        </div>
+        <div id="qExplain"></div>
+      </div>
+    </div>
+  `);
+}
+
+/* ---------------- summary ---------------- */
+
+function renderSummary(){
+  const bank = QUIZ[APP.topic];
+  return shell(`
+    <div class="board sumBox">
+      <h1>Session summary</h1>
+      <div class="sumStat"><span>Topic</span><b>${TOPICS[APP.topic].name}</b></div>
+      <div class="sumStat"><span>Steps taken in simulation</span><b>${APP.steps}</b></div>
+      ${APP.mode==='student' ? `<div class="sumStat"><span>Quiz score</span><b>${APP.quizCorrect} / ${bank.length}</b></div>` : ''}
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="ghostBtn" data-action="toOverview">Restart this topic</button>
+        <button class="primaryBtn" data-action="home">Explore another topic</button>
+      </div>
+    </div>
+  `);
+}
+
+/* ---------------- master render ---------------- */
+
+function render(){
+  const app = document.getElementById('app');
+  if(APP.view==='home') app.innerHTML = renderHome();
+  else if(APP.view==='overview') app.innerHTML = renderOverview();
+  else if(APP.view==='playground'){ app.innerHTML = renderPlayground(); mountSim(APP.topic); }
+  else if(APP.view==='quiz') app.innerHTML = renderQuiz();
+  else if(APP.view==='summary') app.innerHTML = renderSummary();
+}
+
+/* ---------------- delegated events ---------------- */
+
+document.addEventListener('click', function(e){
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.getAttribute('data-action');
+
+  if(action==='home') go('home');
+  else if(action==='setMode'){ APP.mode = el.getAttribute('data-mode'); render(); }
+  else if(action==='startTopic'){ APP.steps=0; go('overview', el.getAttribute('data-topic')); }
+  else if(action==='toPlayground'){ APP.steps=0; go('playground'); }
+  else if(action==='toQuiz') go('quiz');
+  else if(action==='toSummary') go('summary');
+  else if(action==='toOverview') go('overview');
+  else if(action==='rapidFire'){
+    const bank = QUIZ[APP.topic];
+    const q = bank[Math.floor(Math.random()*bank.length)];
+    const ann = document.getElementById('annotation');
+    if(ann) ann.innerHTML = `<span class="tag">Rapid-fire</span>${q.prompt}`;
+  }
+  else if(action==='aiHint'){
+    const idx = parseInt(el.getAttribute('data-idx'),10);
+    const h = HINTS[APP.topic][idx];
+    document.getElementById('aiAnswer').innerHTML = `<div class="aiAnswer">${h.a}</div>`;
+  }
+  else if(action==='answerQuiz'){
+    const idx = parseInt(el.getAttribute('data-idx'),10);
+    const bank = QUIZ[APP.topic];
+    const q = bank[APP.quizIdx];
+    const opts = document.querySelectorAll('#qOpts .qOpt');
+    opts.forEach((b,i)=>{
+      b.disabled = true;
+      if(i===q.correct) b.classList.add('correct');
+      else if(i===idx) b.classList.add('wrong');
+    });
+    if(idx===q.correct) APP.quizCorrect++;
+    document.getElementById('qExplain').innerHTML = `<p class="qExplain">${q.explain}</p>
+      <button class="primaryBtn" style="margin-top:10px;" data-action="nextQuiz">${APP.quizIdx+1 < bank.length ? 'Next question' : 'See results'}</button>`;
+  }
+  else if(action==='nextQuiz'){
+    const bank = QUIZ[APP.topic];
+    APP.quizIdx++;
+    if(APP.quizIdx >= bank.length) APP.quizDone = true;
+    render();
+  }
+  // sim-internal actions handled by mountSim's own listeners (stepBtn/runBtn/resetBtn/guess)
+});
+
+/* =====================================================================
+   SIMULATIONS
+   ===================================================================== */
+
+function mountSim(topic){
+  if(topic==='linreg') mountLinReg();
+  else if(topic==='kmeans') mountKMeans();
+  else mountPerceptron();
+}
+
+function makeScale(xMin,xMax,yMin,yMax,padL,padR,padT,padB,W,H){
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  return {
+    px:(x)=>padL+(x-xMin)/(xMax-xMin)*plotW,
+    py:(y)=>padT+plotH-(y-yMin)/(yMax-yMin)*plotH,
+    padL,padT,plotW,plotH
+  };
+}
+
+/* ---------- Linear Regression ---------- */
+
+function mountLinReg(){
+  const X=[1,2,3,4,5,6,6.5,7,8,9], Y=[2.1,2.9,4.2,4.8,6.1,6.9,7.3,7.8,8.6,9.4];
+  const n=X.length;
+  const meanX=X.reduce((a,b)=>a+b,0)/n, meanY=Y.reduce((a,b)=>a+b,0)/n;
+  const stdX=Math.sqrt(X.reduce((s,x)=>s+(x-meanX)**2,0)/n), stdY=Math.sqrt(Y.reduce((s,y)=>s+(y-meanY)**2,0)/n);
+  const Xn=X.map(x=>(x-meanX)/stdX), Yn=Y.map(y=>(y-meanY)/stdY);
+  const START_M=-1.2, START_B=1.0, MAX_STEPS=12;
+  let st = { mn:START_M, bn:START_B, step:0, lastMse:null };
+
+  const sc = makeScale(0,10,0,11,48,16,14,36,560,340);
+  const svg = document.getElementById('chart');
+  const stepBtn=document.getElementById('stepBtn'), runBtn=document.getElementById('runBtn'), resetBtn=document.getElementById('resetBtn');
+  const predictToggle=document.getElementById('predictToggle'), guessControls=document.getElementById('guessControls'), stepControls=document.getElementById('stepControls');
+  const annotation=document.getElementById('annotation'), lr=document.getElementById('lr'), lrVal=document.getElementById('lrVal');
+  const readouts=document.getElementById('readouts');
+
+  lr.addEventListener('input', ()=>{ lrVal.textContent = parseFloat(lr.value).toFixed(2); });
+
+  function realM(mn){ return mn*stdY/stdX; }
+  function realB(mn,bn){ return meanY - realM(mn)*meanX + bn*stdY; }
+  function mse(m,b){ let s=0; for(let i=0;i<n;i++){ const e=m*X[i]+b-Y[i]; s+=e*e; } return s/n; }
+  function grad(mn,bn){ let dm=0,db=0; for(let i=0;i<n;i++){ const p=mn*Xn[i]+bn, e=p-Yn[i]; dm+=e*Xn[i]; db+=e; } return {dm:2*dm/n, db:2*db/n}; }
+
+  function draw(){
+    const m=realM(st.mn), b=realB(st.mn,st.bn), e=mse(m,b);
+    let s='';
+    s+=`<line x1="${sc.px(0)}" y1="${sc.py(0)}" x2="${sc.px(0)}" y2="${sc.py(11)}" stroke="#C9C1A8"/>`;
+    s+=`<line x1="${sc.px(0)}" y1="${sc.py(0)}" x2="${sc.px(10)}" y2="${sc.py(0)}" stroke="#C9C1A8"/>`;
+    s+=`<text class="axLbl" x="${sc.px(5)}" y="332" text-anchor="middle">Area (100 sq ft)</text>`;
+    s+=`<text class="axLbl" x="14" y="${sc.py(5.5)}" text-anchor="middle" transform="rotate(-90 14 ${sc.py(5.5)})">Price (₹ lakh)</text>`;
+    for(let i=0;i<n;i++){ const py2=m*X[i]+b; s+=`<line x1="${sc.px(X[i])}" y1="${sc.py(Y[i])}" x2="${sc.px(X[i])}" y2="${sc.py(py2)}" stroke="var(--rust)" stroke-width="1" stroke-dasharray="2 2" opacity="0.55"/>`; }
+    s+=`<line x1="${sc.px(0)}" y1="${sc.py(b)}" x2="${sc.px(10)}" y2="${sc.py(m*10+b)}" stroke="var(--blue)" stroke-width="2.5"/>`;
+    for(let i=0;i<n;i++){ s+=`<circle cx="${sc.px(X[i])}" cy="${sc.py(Y[i])}" r="4" fill="var(--ink)"/>`; }
+    svg.innerHTML = s;
+    readouts.innerHTML = `<span>Step <b>${st.step}</b></span><span>Error (MSE) <b class="mseVal ${st.lastMse!==null && e<st.lastMse ? 'improving':''}">${e.toFixed(3)}</b></span>`;
+    return e;
+  }
+  function setAnn(html, kind){ annotation.className='annotation'+(kind?' '+kind:''); annotation.innerHTML=html; }
+
+  function doStep(guess){
+    const lrv=parseFloat(lr.value), g=grad(st.mn,st.bn);
+    const prevM=realM(st.mn), prevB=realB(st.mn,st.bn), prevMse=mse(prevM,prevB);
+    const dir = g.dm<0 ? 'up':'down';
+    st.mn -= lrv*g.dm; st.bn -= lrv*g.db; st.step++;
+    APP.steps = st.step;
+    const newM=realM(st.mn), newB=realB(st.mn,st.bn), newMse=draw();
+    st.lastMse=newMse;
+    const dirWord = dir==='up' ? 'increased':'decreased';
+    const reason = dir==='up' ? 'the higher-area listings were still being underestimated' : 'the higher-area listings were being overestimated';
+    let msg = `<span class="tag">Step ${st.step}</span>Slope ${dirWord} from ${prevM.toFixed(2)} to ${newM.toFixed(2)}, because ${reason}. Error (MSE) went from ${prevMse.toFixed(3)} to ${newMse.toFixed(3)}.`;
+    let kind=null;
+    if(guess){ const correct = guess===dir; kind = correct?'fbGood':'fbBad'; msg = `<span class="tag">${correct?'Correct':'Not quite'}</span>`+msg; }
+    setAnn(msg,kind);
+    if(st.step>=MAX_STEPS || Math.abs(newMse-prevMse)<0.0005){
+      stepBtn.disabled=true; runBtn.disabled=true;
+      setAnn(annotation.innerHTML+' The line has settled here, further steps barely change it. That is convergence.', kind);
+      return true;
+    }
+    return false;
+  }
+
+  function requestStep(){
+    if(predictToggle.checked){ stepControls.style.display='none'; guessControls.style.display='flex'; }
+    else doStep(null);
+  }
+  guessControls.querySelectorAll('.guessBtn').forEach(b=>{
+    b.addEventListener('click', ()=>{ const guess=b.getAttribute('data-guess'); guessControls.style.display='none'; stepControls.style.display='flex'; doStep(guess); });
+  });
+  stepBtn.addEventListener('click', requestStep);
+  runBtn.addEventListener('click', ()=>{
+    stepBtn.disabled=true; runBtn.textContent='Running…';
+    const wasP=predictToggle.checked; predictToggle.checked=false;
+    const tick=()=>{ const done=doStep(null); if(!done){ simTimer=setTimeout(tick,650); } else { runBtn.textContent='Run to convergence'; predictToggle.checked=wasP; } };
+    tick();
+  });
+  resetBtn.addEventListener('click', ()=>{
+    st={mn:START_M,bn:START_B,step:0,lastMse:null}; APP.steps=0;
+    stepBtn.disabled=false; runBtn.disabled=false; runBtn.textContent='Run to convergence';
+    guessControls.style.display='none'; stepControls.style.display='flex';
+    draw(); setAnn('Press "Step forward" to begin. The line starts in a deliberately bad position so the fitting process is visible.');
+  });
+
+  draw();
+}
+
+/* ---------- K-Means ---------- */
+
+function mountKMeans(){
+  const pts=[[2,2],[3,2],[2,3],[3,3],[1.5,2.5],[2.5,1.5],[3.5,2.8],[2,3.6],
+             [7,7],[8,7],[7,8],[8,8],[6.5,7.5],[7.5,6.2],[8.3,7.6],[7,6.3]];
+  const START_C=[[1.5,1.5],[3.8,3.5]];
+  const MAX_ITERS=6;
+  let st = { centroids: START_C.map(c=>c.slice()), assign: pts.map(()=>null), iter:0 };
+
+  const sc = makeScale(0,10,0,10,44,16,14,36,560,340);
+  const svg=document.getElementById('chart');
+  const stepBtn=document.getElementById('stepBtn'), runBtn=document.getElementById('runBtn'), resetBtn=document.getElementById('resetBtn');
+  const annotation=document.getElementById('annotation'), readouts=document.getElementById('readouts');
+  const colors=['var(--blue)','var(--rust)'];
+
+  function dist(a,b){ return Math.hypot(a[0]-b[0], a[1]-b[1]); }
+
+  function draw(){
+    let s='';
+    s+=`<line x1="${sc.px(0)}" y1="${sc.py(0)}" x2="${sc.px(0)}" y2="${sc.py(10)}" stroke="#C9C1A8"/>`;
+    s+=`<line x1="${sc.px(0)}" y1="${sc.py(0)}" x2="${sc.px(10)}" y2="${sc.py(0)}" stroke="#C9C1A8"/>`;
+    s+=`<text class="axLbl" x="${sc.px(5)}" y="332" text-anchor="middle">x</text>`;
+    s+=`<text class="axLbl" x="12" y="${sc.py(5)}" text-anchor="middle" transform="rotate(-90 12 ${sc.py(5)})">y</text>`;
+    pts.forEach((p,i)=>{
+      const cIdx = st.assign[i];
+      const col = cIdx===null ? '#9C9584' : colors[cIdx];
+      s+=`<circle cx="${sc.px(p[0])}" cy="${sc.py(p[1])}" r="5" fill="${col}"/>`;
+    });
+    st.centroids.forEach((c,i)=>{
+      s+=`<rect x="${sc.px(c[0])-6}" y="${sc.py(c[1])-6}" width="12" height="12" fill="none" stroke="${colors[i]}" stroke-width="2.5" transform="rotate(45 ${sc.px(c[0])} ${sc.py(c[1])})"/>`;
+    });
+    svg.innerHTML=s;
+    readouts.innerHTML = `<span>Iteration <b>${st.iter}</b></span>`;
+  }
+  function setAnn(html){ annotation.className='annotation'; annotation.innerHTML=html; }
+
+  function doStep(){
+    const c0=st.centroids[0].slice(), c1=st.centroids[1].slice();
+    const newAssign = pts.map(p => dist(p,c0) < dist(p,c1) ? 0 : 1);
+    const g0 = pts.filter((p,i)=>newAssign[i]===0), g1 = pts.filter((p,i)=>newAssign[i]===1);
+    const mean = g => g.length ? [g.reduce((a,p)=>a+p[0],0)/g.length, g.reduce((a,p)=>a+p[1],0)/g.length] : null;
+    const nc0 = mean(g0) || c0, nc1 = mean(g1) || c1;
+    const moved = dist(nc0,c0)+dist(nc1,c1);
+    st.assign = newAssign;
+    st.centroids = [nc0, nc1];
+    st.iter++;
+    APP.steps = st.iter;
+    draw();
+    setAnn(`<span class="tag">Iteration ${st.iter}</span>Points reassigned to the nearest centroid (${g0.length} to the first, ${g1.length} to the second). Centroids moved to reflect their new group averages.`);
+    if(moved < 0.01 || st.iter>=MAX_ITERS){
+      stepBtn.disabled=true; runBtn.disabled=true;
+      setAnn(annotation.innerHTML+' Centroids stopped moving. That is convergence.');
+      return true;
+    }
+    return false;
+  }
+
+  stepBtn.addEventListener('click', ()=>doStep());
+  runBtn.addEventListener('click', ()=>{
+    stepBtn.disabled=true; runBtn.textContent='Running…';
+    const tick=()=>{ const done=doStep(); if(!done){ simTimer=setTimeout(tick,700); } else { runBtn.textContent='Run to convergence'; } };
+    tick();
+  });
+  resetBtn.addEventListener('click', ()=>{
+    st = { centroids: START_C.map(c=>c.slice()), assign: pts.map(()=>null), iter:0 }; APP.steps=0;
+    stepBtn.disabled=false; runBtn.disabled=false; runBtn.textContent='Run to convergence';
+    draw(); setAnn('Press "Step forward" to run the first assignment and centroid update.');
+  });
+
+  draw();
+  setAnn('Press "Step forward" to begin. Both starting centroids are placed close together on purpose.');
+}
+
+/* ---------- Perceptron ---------- */
+
+function mountPerceptron(){
+  const classA=[[1,1],[2,1.5],[1.5,2],[2.5,1],[1,2.5],[2,2]];
+  const classB=[[6,6],[7,6.5],[6.5,7],[7.5,6],[6,7.5],[7,7]];
+  const data = classA.map(p=>({x:p[0],y:p[1],label:-1})).concat(classB.map(p=>({x:p[0],y:p[1],label:1})));
+  const LR=0.2, MAX_EPOCHS=8;
+  let st = { w1:1.0, w2:0.0, b:0.0, epoch:0 };
+
+  const sc = makeScale(0,10,0,10,44,16,14,36,560,340);
+  const svg=document.getElementById('chart');
+  const stepBtn=document.getElementById('stepBtn'), runBtn=document.getElementById('runBtn'), resetBtn=document.getElementById('resetBtn');
+  const annotation=document.getElementById('annotation'), readouts=document.getElementById('readouts');
+
+  function predict(x,y){ return (st.w1*x+st.w2*y+st.b) >= 0 ? 1 : -1; }
+  function totalErrs(){ return data.reduce((s,d)=>s+(predict(d.x,d.y)!==d.label?1:0),0); }
+
+  function draw(){
+    let s='';
+    s+=`<line x1="${sc.px(0)}" y1="${sc.py(0)}" x2="${sc.px(0)}" y2="${sc.py(10)}" stroke="#C9C1A8"/>`;
+    s+=`<line x1="${sc.px(0)}" y1="${sc.py(0)}" x2="${sc.px(10)}" y2="${sc.py(0)}" stroke="#C9C1A8"/>`;
+    s+=`<text class="axLbl" x="${sc.px(5)}" y="332" text-anchor="middle">x</text>`;
+    s+=`<text class="axLbl" x="12" y="${sc.py(5)}" text-anchor="middle" transform="rotate(-90 12 ${sc.py(5)})">y</text>`;
+    if(Math.abs(st.w2) > 1e-6){
+      const y0 = -(st.w1*0+st.b)/st.w2, y10 = -(st.w1*10+st.b)/st.w2;
+      s+=`<line x1="${sc.px(0)}" y1="${sc.py(y0)}" x2="${sc.px(10)}" y2="${sc.py(y10)}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 3"/>`;
+    } else if(Math.abs(st.w1) > 1e-6){
+      const xv = -st.b/st.w1;
+      s+=`<line x1="${sc.px(xv)}" y1="${sc.py(0)}" x2="${sc.px(xv)}" y2="${sc.py(10)}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 3"/>`;
+    }
+    data.forEach(d=>{
+      const col = d.label===1 ? 'var(--blue)' : 'var(--rust)';
+      const miss = predict(d.x,d.y) !== d.label;
+      s+=`<circle cx="${sc.px(d.x)}" cy="${sc.py(d.y)}" r="${miss?6:4.5}" fill="${col}" stroke="${miss?'var(--ink)':'none'}" stroke-width="${miss?1.5:0}"/>`;
+    });
+    svg.innerHTML=s;
+    const e=totalErrs();
+    readouts.innerHTML = `<span>Epoch <b>${st.epoch}</b></span><span>Misclassified <b class="mseVal ${e===0?'improving':''}">${e}</b></span>`;
+    return e;
+  }
+  function setAnn(html){ annotation.className='annotation'; annotation.innerHTML=html; }
+
+  function doStep(){
+    const prevErrs = totalErrs();
+    data.forEach(d=>{
+      const pred = predict(d.x,d.y);
+      if(pred !== d.label){ st.w1 += LR*d.label*d.x; st.w2 += LR*d.label*d.y; st.b += LR*d.label; }
+    });
+    st.epoch++;
+    APP.steps = st.epoch;
+    const newErrs = draw();
+    let note = newErrs < prevErrs ? 'fewer points are on the wrong side now.' :
+               newErrs > prevErrs ? 'that correction briefly pushed another point onto the wrong side, this is normal for perceptron.' :
+               'the same points are still misclassified; another pass should shift the boundary further.';
+    setAnn(`<span class="tag">Epoch ${st.epoch}</span>Boundary updated using every misclassified point from the last pass. ${newErrs} point${newErrs===1?'':'s'} still misclassified, ${note}`);
+    if(newErrs===0 || st.epoch>=MAX_EPOCHS){
+      stepBtn.disabled=true; runBtn.disabled=true;
+      if(newErrs===0) setAnn(annotation.innerHTML+' All points are now correctly classified. That is convergence.');
+      return true;
+    }
+    return false;
+  }
+
+  stepBtn.addEventListener('click', ()=>doStep());
+  runBtn.addEventListener('click', ()=>{
+    stepBtn.disabled=true; runBtn.textContent='Running…';
+    const tick=()=>{ const done=doStep(); if(!done){ simTimer=setTimeout(tick,700); } else { runBtn.textContent='Run to convergence'; } };
+    tick();
+  });
+  resetBtn.addEventListener('click', ()=>{
+    st={w1:1.0,w2:0.0,b:0.0,epoch:0}; APP.steps=0;
+    stepBtn.disabled=false; runBtn.disabled=false; runBtn.textContent='Run to convergence';
+    draw(); setAnn('Press "Step forward" to run the first epoch. The boundary starts in a deliberately poor position.');
+  });
+
+  draw();
+  setAnn('Press "Step forward" to begin. Rust points and blue points should end up on opposite sides of the dashed line.');
+}
+
+/* boot */
+render();
+})();
+</script>
+</body>
+</html>

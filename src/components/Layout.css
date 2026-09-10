@@ -1,0 +1,81 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+.site-header {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 64px;
+}
+
+.brand {
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+
+.nav {
+  display: flex;
+  gap: 16px;
+  margin-right: auto;
+}
+
+.nav a {
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 6px 4px;
+  border-bottom: 2px solid transparent;
+}
+
+.nav a:hover {
+  color: var(--color-text-strong);
+}
+
+.nav a.active {
+  color: var(--color-text-strong);
+  border-bottom-color: var(--color-accent);
+}
+
+.learnerGreeting {
+  font-size: 13px;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.theme-toggle {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  border-color: var(--color-accent-border);
+}
+
+.site-main {
+  flex: 1;
+  padding-block: 40px;
+}
+
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.site-footer .container {
+  padding-block: 20px;
+}
