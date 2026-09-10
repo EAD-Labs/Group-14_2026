@@ -256,3 +256,159 @@
 .linreg .annotation.fbBad .tag {
   color: var(--rust);
 }
+
+.linreg .storyText {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 14px;
+}
+
+.linreg .choiceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.linreg .stageActions {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+}
+
+.linreg .termList {
+  margin: 0 0 16px;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.linreg .termList b {
+  font-weight: 600;
+}
+
+.linreg .eqBox {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 14px;
+  font-size: 17px;
+  margin: 0 0 12px;
+  text-align: center;
+  font-family: 'Lora', serif;
+}
+
+.linreg .reflectBox {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.linreg .sectionLabel {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.linreg .formalBox {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 14px 16px;
+  margin: 0 0 14px;
+}
+
+.linreg .formalBox .formalLabel {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.linreg .formalBox .formalTerm {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  font-size: 15px;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.linreg .formalBox p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.linreg .formalBox p:last-child {
+  margin-bottom: 0;
+}
+
+.linreg .formalBox .formula {
+  display: block;
+  font-family: 'Lora', serif;
+  font-size: 14.5px;
+  margin: 6px 0;
+}
+
+.linreg .playgroundGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 14px 0 8px;
+}
+
+@media (max-width: 720px) {
+  .linreg .playgroundGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.linreg .tinyChartLabel {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+
+.linreg .tinyCurve {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.linreg .stepDots {
+  display: flex;
+  gap: 6px;
+  margin: 2px 0 8px;
+}
+
+.linreg .stepDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.linreg .stepDot.done {
+  background: var(--good);
+}
+
+.linreg .stepDot.active {
+  background: var(--blue);
+  transform: scale(1.3);
+}
+
+.linreg .connectNote {
+  margin: 8px 0 0 !important;
+  padding: 8px 10px;
+  background: var(--blue-soft);
+  border-left: 3px solid var(--blue);
+  font-size: 12.5px !important;
+  line-height: 1.5;
+  font-style: italic;
+}
