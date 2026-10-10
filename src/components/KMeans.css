@@ -436,3 +436,43 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* ---------- elbow plot ---------- */
+.kmeans .elbowPanel {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 14px 16px;
+  margin: 14px 0;
+}
+
+.kmeans .elbowSvg {
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  display: block;
+  margin: 8px 0 2px;
+}
+
+.kmeans .elbowTag {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.kmeans .elbowReadout {
+  font-size: 12px;
+  color: var(--muted);
+  min-height: 18px;
+  margin: 0 0 10px;
+}
+
+.kmeans .elbowChoices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.kmeans .elbowChoices .guessBtn {
+  width: auto;
+  padding: 6px 12px;
+}

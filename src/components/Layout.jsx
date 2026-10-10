@@ -12,6 +12,8 @@ function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
   const isHome = location.pathname === '/'
+  const isWide = location.pathname.startsWith('/topic/') || location.pathname.startsWith('/teacher/')
+  const wide = isWide ? ' container--wide' : ''
 
   const goBack = () => {
     if (location.key === 'default') {
@@ -40,7 +42,7 @@ function Layout() {
   return (
     <div className="layout">
       <header className="site-header">
-        <div className="container site-header__inner">
+        <div className={`container site-header__inner${wide}`}>
           <span className="brand">MLX Studio</span>
           <nav className="nav">
             <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : undefined)}>
@@ -69,14 +71,14 @@ function Layout() {
       </header>
 
       {!isHome && (
-        <div className="container back-bar">
+        <div className={`container back-bar${wide}`}>
           <button type="button" className="back-button" onClick={goBack}>
             Back
           </button>
         </div>
       )}
 
-      <main className="site-main container">
+      <main className={`site-main container${wide}`}>
         <Outlet />
       </main>
 

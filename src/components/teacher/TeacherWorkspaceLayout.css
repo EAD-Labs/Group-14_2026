@@ -614,3 +614,15 @@
   align-items: center;
   justify-content: space-between;
 }
+
+/* Phones: playback buttons and the shortcut hint wrap instead of overflowing the screen. */
+@media (max-width: 600px) {
+  .tw-pb-buttons,
+  .tw-pb-right {
+    flex-wrap: wrap;
+  }
+
+  .tw-keyboard-hint {
+    display: none;
+  }
+}

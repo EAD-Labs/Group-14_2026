@@ -41,8 +41,8 @@ function GradientDescentPage() {
         the exact answer OLS computes directly.
       </p>
       <div className="quizCta">
-        <Link className="primaryBtn" to={`/topic/${TOPIC_ID}/quiz`}>
-          Take the quiz
+        <Link className="primaryBtn" to={`/topic/${TOPIC_ID}/posttest`}>
+          Go to the posttest →
         </Link>
       </div>
     </section>

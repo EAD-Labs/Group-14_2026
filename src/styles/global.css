@@ -55,3 +55,7 @@ code {
   margin: 0 auto;
   padding: 0 24px;
 }
+
+.container.container--wide {
+  max-width: 1240px;
+}

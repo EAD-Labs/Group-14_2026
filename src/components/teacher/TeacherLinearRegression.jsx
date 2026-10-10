@@ -107,6 +107,58 @@ function computeMSE(points, b1, b0) {
   return s / points.length
 }
 
+// Gradient descent setup. The descent runs on standardised data (feature scaling), exactly as the
+// code panel shows, so the same learning rate behaves the same way on any dataset or units.
+const INIT_SLOPE_SCALED = 0
+const INIT_INTERCEPT_SCALED = 0.5
+const DEFAULT_LR = 0.2
+const CONVERGE_GRAD = 0.01
+const MAX_ITERS = 200
+
+function computeScaling(points) {
+  const n = points.length || 1
+  const meanX = points.reduce((a, p) => a + p.x, 0) / n
+  const meanY = points.reduce((a, p) => a + p.y, 0) / n
+  const stdX = Math.sqrt(points.reduce((a, p) => a + (p.x - meanX) ** 2, 0) / n) || 1
+  const stdY = Math.sqrt(points.reduce((a, p) => a + (p.y - meanY) ** 2, 0) / n) || 1
+  const xs = points.map((p) => (p.x - meanX) / stdX)
+  const ys = points.map((p) => (p.y - meanY) / stdY)
+  return { meanX, meanY, stdX, stdY, xs, ys }
+}
+
+// Real-unit line (b1, b0) <-> scaled line (w, b).
+function toScaled(s, b1, b0) {
+  const w = (b1 * s.stdX) / s.stdY
+  const b = (b0 + b1 * s.meanX - s.meanY) / s.stdY
+  return [w, b]
+}
+
+function fromScaled(s, w, b) {
+  const b1 = (w * s.stdY) / s.stdX
+  const b0 = s.meanY + b * s.stdY - b1 * s.meanX
+  return [b1, b0]
+}
+
+// grad_slope = (2/N) * sum(error * Xs), grad_intercept = (2/N) * sum(error)
+function scaledGradient(s, w, b) {
+  const n = s.xs.length || 1
+  let gw = 0
+  let gb = 0
+  for (let i = 0; i < s.xs.length; i++) {
+    const e = w * s.xs[i] + b - s.ys[i]
+    gw += e * s.xs[i]
+    gb += e
+  }
+  return [(2 / n) * gw, (2 / n) * gb]
+}
+
+// One real gradient descent update, returned in real units.
+function gdStep(s, b1, b0, lr) {
+  const [w, b] = toScaled(s, b1, b0)
+  const [gw, gb] = scaledGradient(s, w, b)
+  return fromScaled(s, w - lr * gw, b - lr * gb)
+}
+
 const LR_STEPS = [
   {
     key: 'dataset',
@@ -216,17 +268,21 @@ function TeacherLinearRegression() {
   }, [isCustomCsv, csvData, colX, colY, selectedPresetId])
 
   const ols = useMemo(() => computeOLS(activeData.points), [activeData.points])
+  // Scaling statistics: gradient descent runs on standardised data (the same as the code panel shows).
+  const scaling = useMemo(() => computeScaling(activeData.points), [activeData.points])
 
   // Teaching Mode & Split Focus (Default: Visual mode)
   const [teachingMode, setTeachingMode] = useState('visual')
   const [focusMode, setFocusMode] = useState('balanced')
 
-  // Simulation State
+  // Simulation State (b1, b0 are always stored in the dataset's real units)
+  const initialParams = useMemo(() => fromScaled(scaling, INIT_SLOPE_SCALED, INIT_INTERCEPT_SCALED), [scaling])
   const [stepIndex, setStepIndex] = useState(0)
-  const [b1, setB1] = useState(() => Number((ols.b1 * 0.4).toFixed(2)))
-  const [b0, setB0] = useState(() => Number((ols.b0 * 0.6).toFixed(1)))
-  const [learningRate, setLearningRate] = useState(0.05)
+  const [b1, setB1] = useState(initialParams[0])
+  const [b0, setB0] = useState(initialParams[1])
+  const [learningRate, setLearningRate] = useState(DEFAULT_LR)
   const [iteration, setIteration] = useState(0)
+  const [history, setHistory] = useState([]) // previous [b1, b0] pairs, so Prev restores the true previous state
   const [isPlaying, setIsPlaying] = useState(false)
   const [speed, setSpeed] = useState(1)
   const [snapshot, setSnapshot] = useState(null) // Baseline snapshot comparison
@@ -242,19 +298,26 @@ function TeacherLinearRegression() {
   const [showSquareBoxes, setShowSquareBoxes] = useState(false)
   const [showOlsTarget, setShowOlsTarget] = useState(false)
 
-  // Initialize line when dataset/OLS changes
+  const setParams = useCallback((nb1, nb0) => {
+    setB1(nb1)
+    setB0(nb0)
+  }, [])
+
   const resetModelToInit = useCallback(() => {
-    const initSlope = Number((ols.b1 * 0.4).toFixed(2))
-    const initIntercept = Number((ols.b0 * 0.6).toFixed(1))
-    setB1(initSlope)
-    setB0(initIntercept)
+    setParams(initialParams[0], initialParams[1])
     setStepIndex(0)
     setIteration(0)
+    setHistory([])
     setIsPlaying(false)
     setSelectedPointIndex(null)
     setSelectedPointBIndex(null)
     setSelectedLine(false)
-  }, [ols])
+  }, [initialParams, setParams])
+
+  // Whenever the dataset changes, start again from the new dataset's starting line.
+  useEffect(() => {
+    resetModelToInit()
+  }, [resetModelToInit])
 
   // CSV Load Handler
   const handleCsvLoaded = (parsedResult) => {
@@ -265,14 +328,12 @@ function TeacherLinearRegression() {
     const c2 = numCols[1] || numCols[0] || parsedResult.headers[1]
     setColX(c1)
     setColY(c2)
-    resetModelToInit()
   }
 
   const handleResetToSample = () => {
     setIsCustomCsv(false)
     setCsvData(null)
     setSelectedPresetId('housing')
-    resetModelToInit()
   }
 
   // Metrics
@@ -342,27 +403,18 @@ function TeacherLinearRegression() {
     setSelectedLine(true)
   }
 
-  // Real-time Gradients & Code Step Mappings
+  // Real gradients in scaled units: exactly the grad_slope / grad_intercept lines of the code panel.
   const lrGradients = useMemo(() => {
+    const [w, b] = toScaled(scaling, b1, b0)
+    const [gradSlope, gradIntercept] = scaledGradient(scaling, w, b)
     const pts = activeData.points
-    if (!pts || pts.length === 0) return { gradSlope: 0, gradIntercept: 0, avgResidual: 0 }
-    let sumGradSlope = 0
-    let sumGradIntercept = 0
-    let sumRes = 0
-    pts.forEach((p) => {
-      const pred = b1 * p.x + b0
-      const err = pred - p.y
-      sumGradSlope += err * p.x
-      sumGradIntercept += err
-      sumRes += Math.abs(err)
-    })
-    const n = pts.length
-    return {
-      gradSlope: Number(((2 / n) * sumGradSlope).toFixed(3)),
-      gradIntercept: Number(((2 / n) * sumGradIntercept).toFixed(3)),
-      avgResidual: Number((sumRes / n).toFixed(3)),
-    }
-  }, [activeData.points, b1, b0])
+    const avgResidual = pts.length ? pts.reduce((s, p) => s + Math.abs(b1 * p.x + b0 - p.y), 0) / pts.length : 0
+    return { w, b, gradSlope, gradIntercept, avgResidual }
+  }, [scaling, activeData.points, b1, b0])
+
+  const isConverged =
+    Math.abs(lrGradients.gradSlope) < CONVERGE_GRAD && Math.abs(lrGradients.gradIntercept) < CONVERGE_GRAD
+  const isDiverging = !Number.isFinite(currentMSE) || currentMSE > 1e6
 
   const activeMapping = LR_CODE_MAPPINGS[stepIndex] || LR_CODE_MAPPINGS[0]
 
@@ -370,105 +422,118 @@ function TeacherLinearRegression() {
     const pts = activeData.points
     return [
       { name: 'N', value: `${pts.length} pts`, highlight: stepIndex === 0 },
-      { name: 'slope (b₁)', value: b1.toFixed(3), highlight: stepIndex === 1 || stepIndex === 6 },
-      { name: 'intercept (b₀)', value: b0.toFixed(2), highlight: stepIndex === 1 || stepIndex === 6 },
-      { name: 'MSE (loss)', value: currentMSE.toFixed(3), highlight: stepIndex === 4 || stepIndex === 7 },
-      { name: 'grad_slope', value: lrGradients.gradSlope.toFixed(3), highlight: stepIndex === 5 },
-      { name: 'grad_intercept', value: lrGradients.gradIntercept.toFixed(3), highlight: stepIndex === 5 },
+      { name: 'slope (scaled)', value: lrGradients.w.toFixed(3), highlight: stepIndex === 1 || stepIndex === 6 },
+      { name: 'intercept (scaled)', value: lrGradients.b.toFixed(3), highlight: stepIndex === 1 || stepIndex === 6 },
+      { name: 'MSE (real units)', value: currentMSE.toFixed(3), highlight: stepIndex === 4 || stepIndex === 7 },
+      { name: 'grad_slope', value: lrGradients.gradSlope.toFixed(3), highlight: stepIndex === 5 || stepIndex === 8 },
+      { name: 'grad_intercept', value: lrGradients.gradIntercept.toFixed(3), highlight: stepIndex === 5 || stepIndex === 8 },
       { name: 'mean_|err|', value: lrGradients.avgResidual.toFixed(2), highlight: stepIndex === 3 },
-      { name: 'lr', value: learningRate.toFixed(2) },
+      { name: 'learning_rate', value: learningRate.toFixed(2) },
     ]
-  }, [activeData.points, b1, b0, currentMSE, lrGradients, stepIndex, learningRate])
+  }, [activeData.points, currentMSE, lrGradients, stepIndex, learningRate])
 
-  // Single step transition (Fine-grain)
+  // Runs `count` real gradient descent steps from (sb1, sb0), keeping every visited state in history.
+  const runSteps = useCallback(
+    (sb1, sb0, count, untilConverged = false) => {
+      let cur = [sb1, sb0]
+      const visited = []
+      let done = 0
+      for (let i = 0; i < count; i++) {
+        if (untilConverged) {
+          const [w, b] = toScaled(scaling, cur[0], cur[1])
+          const [gw, gb] = scaledGradient(scaling, w, b)
+          if (Math.abs(gw) < CONVERGE_GRAD && Math.abs(gb) < CONVERGE_GRAD) break
+          if (!Number.isFinite(gw) || Math.abs(w) > 1e6) break
+        }
+        visited.push(cur)
+        cur = gdStep(scaling, cur[0], cur[1], learningRate)
+        done += 1
+      }
+      return { next: cur, visited, done }
+    },
+    [scaling, learningRate],
+  )
+
+  // Phase-by-phase walk through one iteration. Phases 0-5 describe the starting line; 6 applies one real
+  // update; 7 runs two more; 8 keeps going until the gradient is (almost) zero, or the cap is hit.
   const handleJumpStep = useCallback(
     (targetIdx) => {
       setStepIndex(targetIdx)
-      if (targetIdx <= 4) {
-        setB1(Number((ols.b1 * 0.4).toFixed(2)))
-        setB0(Number((ols.b0 * 0.6).toFixed(1)))
+      if (targetIdx <= 5) {
+        setParams(initialParams[0], initialParams[1])
         setIteration(0)
-      } else if (targetIdx === 5 || targetIdx === 6) {
-        const alpha = Math.min(0.85, learningRate * 8)
-        const newB1 = b1 + (ols.b1 - b1) * alpha
-        const newB0 = b0 + (ols.b0 - b0) * alpha
-        setB1(Number(newB1.toFixed(3)))
-        setB0(Number(newB0.toFixed(3)))
+        setHistory([])
+      } else if (targetIdx === 6) {
+        const { next, visited } = runSteps(initialParams[0], initialParams[1], 1)
+        setParams(next[0], next[1])
         setIteration(1)
+        setHistory(visited)
       } else if (targetIdx === 7) {
-        const alpha = Math.min(0.9, learningRate * 14)
-        const newB1 = b1 + (ols.b1 - b1) * alpha
-        const newB0 = b0 + (ols.b0 - b0) * alpha
-        setB1(Number(newB1.toFixed(3)))
-        setB0(Number(newB0.toFixed(3)))
+        const { next, visited } = runSteps(initialParams[0], initialParams[1], 3)
+        setParams(next[0], next[1])
         setIteration(3)
+        setHistory(visited)
       } else if (targetIdx === 8) {
-        setB1(Number(ols.b1.toFixed(3)))
-        setB0(Number(ols.b0.toFixed(3)))
-        setIteration(6)
+        const { next, visited, done } = runSteps(initialParams[0], initialParams[1], MAX_ITERS, true)
+        setParams(next[0], next[1])
+        setIteration(done)
+        setHistory(visited)
       }
     },
-    [b1, b0, ols, learningRate],
+    [initialParams, runSteps, setParams],
   )
 
-  // Iteration-Level Playback (Projector-first classroom unit)
+  // Iteration-Level Playback: one real gradient descent step per click.
   const handleNextIteration = useCallback(() => {
     if (stepIndex < 6) {
       handleJumpStep(6)
-    } else {
-      const alpha = Math.min(0.85, learningRate * 6)
-      const newB1 = b1 + (ols.b1 - b1) * alpha
-      const newB0 = b0 + (ols.b0 - b0) * alpha
-      setB1(Number(newB1.toFixed(3)))
-      setB0(Number(newB0.toFixed(3)))
-      const nextIter = iteration + 1
-      setIteration(nextIter)
-      if (Math.abs(newB1 - ols.b1) < 0.04 && Math.abs(newB0 - ols.b0) < 0.15) {
-        setStepIndex(8)
-      } else {
-        setStepIndex(7)
-      }
+      return
     }
-  }, [stepIndex, learningRate, b1, b0, ols, iteration, handleJumpStep])
+    if (isConverged || isDiverging || iteration >= MAX_ITERS) {
+      setStepIndex(8)
+      return
+    }
+    const next = gdStep(scaling, b1, b0, learningRate)
+    setHistory((h) => [...h, [b1, b0]])
+    setParams(next[0], next[1])
+    setIteration((it) => it + 1)
+    const [w, b] = toScaled(scaling, next[0], next[1])
+    const [gw, gb] = scaledGradient(scaling, w, b)
+    setStepIndex(Math.abs(gw) < CONVERGE_GRAD && Math.abs(gb) < CONVERGE_GRAD ? 8 : 7)
+  }, [stepIndex, isConverged, isDiverging, iteration, scaling, b1, b0, learningRate, setParams, handleJumpStep])
 
+  // Restores the exact previous state (no extrapolation).
   const handlePrevIteration = useCallback(() => {
-    if (iteration > 1) {
-      const alpha = 0.5
-      const prevB1 = b1 - (ols.b1 - b1) * alpha
-      const prevB0 = b0 - (ols.b0 - b0) * alpha
-      setB1(Number(prevB1.toFixed(3)))
-      setB0(Number(prevB0.toFixed(3)))
-      setIteration((it) => it - 1)
-      setStepIndex(6)
-    } else {
+    if (history.length === 0) {
       resetModelToInit()
+      return
     }
-  }, [iteration, b1, b0, ols, resetModelToInit])
+    const prev = history[history.length - 1]
+    setHistory((h) => h.slice(0, -1))
+    setParams(prev[0], prev[1])
+    setIteration((it) => Math.max(0, it - 1))
+    setStepIndex(history.length - 1 === 0 ? 5 : 7)
+  }, [history, resetModelToInit, setParams])
 
-  // Teacher-Edited Python Code Execution Handler
+  // Teacher-edited code: slope / intercept are read in scaled units (as in the code), learning_rate as is.
   const handleRunTeacherCode = useCallback(
     (extracted) => {
-      if (extracted.learning_rate !== undefined && Number.isFinite(extracted.learning_rate)) {
-        setLearningRate(extracted.learning_rate)
+      let lr = learningRate
+      if (Number.isFinite(extracted.learning_rate) && extracted.learning_rate > 0) {
+        lr = extracted.learning_rate
+        setLearningRate(lr)
       }
-      if (extracted.slope !== undefined && Number.isFinite(extracted.slope)) {
-        setB1(Number(extracted.slope.toFixed(3)))
-      }
-      if (extracted.intercept !== undefined && Number.isFinite(extracted.intercept)) {
-        setB0(Number(extracted.intercept.toFixed(2)))
-      }
-      const lr = extracted.learning_rate !== undefined ? extracted.learning_rate : learningRate
-      const curB1 = extracted.slope !== undefined ? extracted.slope : b1
-      const curB0 = extracted.intercept !== undefined ? extracted.intercept : b0
-      const alpha = Math.min(0.9, lr * 6)
-      const nextB1 = curB1 + (ols.b1 - curB1) * alpha
-      const nextB0 = curB0 + (ols.b0 - curB0) * alpha
-      setB1(Number(nextB1.toFixed(3)))
-      setB0(Number(nextB0.toFixed(3)))
-      setIteration((it) => it + 1)
+      let [w, b] = toScaled(scaling, b1, b0)
+      if (Number.isFinite(extracted.slope)) w = extracted.slope
+      if (Number.isFinite(extracted.intercept)) b = extracted.intercept
+      const start = fromScaled(scaling, w, b)
+      const next = gdStep(scaling, start[0], start[1], lr)
+      setHistory([start])
+      setParams(next[0], next[1])
+      setIteration(1)
       setStepIndex(6)
     },
-    [learningRate, b1, b0, ols],
+    [learningRate, scaling, b1, b0, setParams],
   )
 
   const handleNext = () => {
@@ -872,9 +937,21 @@ function TeacherLinearRegression() {
             {/* Convergence indicator */}
             {stepIndex === 8 && (
               <g transform={`translate(${SVG_W / 2}, ${PAD.t + 16})`}>
-                <rect x="-85" y="-14" width="170" height="28" rx="14" fill="var(--good)" opacity="0.95" />
+                <rect
+                  x="-110"
+                  y="-14"
+                  width="220"
+                  height="28"
+                  rx="14"
+                  fill={isConverged ? 'var(--good)' : 'var(--rust)'}
+                  opacity="0.95"
+                />
                 <text x="0" y="4" fill="#fff" textAnchor="middle" fontSize="11.5" fontWeight="600">
-                  ★ Converged to OLS Fit
+                  {isConverged
+                    ? `★ Converged to OLS fit in ${iteration} steps`
+                    : isDiverging
+                      ? 'Diverged: learning rate too large'
+                      : `Not converged after ${iteration} steps`}
                 </text>
               </g>
             )}
@@ -931,7 +1008,7 @@ function TeacherLinearRegression() {
             <input
               type="range"
               min="0.01"
-              max="0.25"
+              max="1.2"
               step="0.01"
               value={learningRate}
               onChange={(e) => setLearningRate(Number(e.target.value))}

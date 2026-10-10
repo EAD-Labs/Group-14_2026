@@ -73,10 +73,11 @@ export const QUIZ = {
     },
     {
       prompt:
-        'If the fitted line sits below most points on the right side of the chart, what will gradient descent do to the slope next?',
-      opts: ['Increase it', 'Decrease it', 'Leave it unchanged'],
+        'Your line sits below most points on the right side of the chart and above most points on the left side. Which change would lower the error?',
+      opts: ['Make the line steeper (increase the slope)', 'Make the line flatter (decrease the slope)', 'Only move the whole line down'],
       correct: 0,
-      explain: 'Points above the line on the right are pulling it upward, so the slope grows to close that gap.',
+      explain:
+        'The points climb faster than your line does: it is too low on the right and too high on the left. Tilting it up (a bigger slope) closes both gaps at once.',
     },
     {
       prompt: 'The error (MSE) drops from 2.8 to 0.6 after a few steps. What does that actually tell you?',
@@ -260,6 +261,28 @@ export const QUIZ = {
       correct: 0,
       explain:
         'The slope and intercept are what the descent learns. The learning rate is set beforehand and controls the step size.',
+    },
+    {
+      prompt: 'You raise the learning rate a lot, and after each step the error is larger than before. What is happening?',
+      opts: [
+        'The steps overshoot the bottom of the bowl, so the descent is diverging',
+        'The descent has converged faster than usual',
+        'The dataset has changed',
+      ],
+      correct: 0,
+      explain:
+        'A step that is too long jumps past the minimum to a point that is even higher up the other side. Each jump is worse than the last, so the error keeps growing.',
+    },
+    {
+      prompt: 'With a very small learning rate, such as 0.01, what do you expect?',
+      opts: [
+        'The path moves steadily downhill but needs many steps to reach the bottom',
+        'The path jumps straight to the bottom in one step',
+        'The error grows with every step',
+      ],
+      correct: 0,
+      explain:
+        'Small steps are safe but slow. Each one lowers the error a little, so reaching the minimum takes many more steps.',
     },
   ],
 }

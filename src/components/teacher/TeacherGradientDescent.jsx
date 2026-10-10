@@ -64,6 +64,9 @@ const SAMPLE_PRESETS = [
   },
 ]
 
+const GD_MAX_STEPS = 60
+const GD_CONVERGE = 0.01
+
 function starPoints(cx, cy) {
   const pts = []
   for (let i = 0; i < 10; i++) {
@@ -334,27 +337,24 @@ function TeacherGradientDescent() {
         setPos([curB1, curB0])
         setPath(p)
       } else if (targetIdx === 6) {
-        if (learningRate >= 0.9) {
-          // Overshooting oscillation
-          let curB1 = initialPos[0]
-          let curB0 = initialPos[1]
-          let p = [initialPos]
-          for (let i = 0; i < 8; i++) {
-            const res = stepDescent(curB1, curB0, p)
-            curB1 = res.nextB1
-            curB0 = res.nextB0
-            p = res.nextPath
-          }
-          setPos([curB1, curB0])
-          setPath(p)
-        } else {
-          // Convergence to star
-          setPos([Number(stats.olsB1.toFixed(3)), Number(stats.olsB0.toFixed(3))])
-          setPath([...path, [stats.olsB1, stats.olsB0]])
+        // Keep taking real steps until the gradient is (almost) zero, or the step limit is reached.
+        // A learning rate that is too large never converges, and the path shows it.
+        let curB1 = initialPos[0]
+        let curB0 = initialPos[1]
+        let p = [initialPos]
+        for (let i = 0; i < GD_MAX_STEPS; i++) {
+          const [gm, gb] = calcGradNorm(...normFromReal(curB1, curB0))
+          if (Math.hypot(gm, gb) < GD_CONVERGE || !Number.isFinite(gm) || Math.abs(curB1) > 1e6) break
+          const res = stepDescent(curB1, curB0, p)
+          curB1 = res.nextB1
+          curB0 = res.nextB0
+          p = res.nextPath
         }
+        setPos([curB1, curB0])
+        setPath(p)
       }
     },
-    [initialPos, learningRate, stats.olsB1, stats.olsB0, stepDescent, path],
+    [initialPos, stepDescent, calcGradNorm, normFromReal],
   )
 
   // Current Parameters & Metrics
@@ -401,12 +401,10 @@ function TeacherGradientDescent() {
     const res = stepDescent(curB1, curB0, path)
     setPos([res.nextB1, res.nextB0])
     setPath(res.nextPath)
-    if (res.nextPath.length >= 16 || (Math.abs(dm) < 0.05 && Math.abs(db) < 0.05)) {
-      setStepIndex(6) // converged
-    } else {
-      setStepIndex(3) // step update
-    }
-  }, [pos, path, stepDescent, dm, db])
+    const [gm, gb] = calcGradNorm(...normFromReal(res.nextB1, res.nextB0))
+    const settled = Math.hypot(gm, gb) < GD_CONVERGE
+    setStepIndex(settled || res.nextPath.length > GD_MAX_STEPS ? 6 : 3)
+  }, [pos, path, stepDescent, calcGradNorm, normFromReal])
 
   const handlePrevIteration = useCallback(() => {
     if (path.length > 2) {
@@ -431,8 +429,7 @@ function TeacherGradientDescent() {
       let curB1 = pos[0]
       let curB0 = pos[1]
       if (extracted.theta && Array.isArray(extracted.theta) && extracted.theta.length === 2) {
-        curB1 = Number(extracted.theta[0])
-        curB0 = Number(extracted.theta[1])
+        ;[curB1, curB0] = realFromNorm(Number(extracted.theta[0]), Number(extracted.theta[1]))
         setPos([curB1, curB0])
         setPath([[curB1, curB0]])
       }

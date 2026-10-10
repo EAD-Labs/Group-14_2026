@@ -1,0 +1,426 @@
+/* Virtual Labs-style layout: section sidebar on the left, content on the right. */
+
+.paper.lab {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+/* ---------- sidebar ---------- */
+.paper .labNav {
+  position: sticky;
+  top: 16px;
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  padding: 14px 10px;
+}
+
+.paper .labNavHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.paper .labNavIco {
+  font-size: 18px;
+}
+
+.paper .labNavTopic {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.paper .labNavList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.paper .labNavItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px;
+  border-radius: 5px;
+  font-size: 13.5px;
+  color: var(--ink);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+
+.paper .labNavItem:hover {
+  background: #efeadb;
+}
+
+.paper .labNavItem.active {
+  background: var(--blue-soft);
+  border-left-color: var(--blue);
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.paper .labNavNum {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.paper .labNavItem.active .labNavNum {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+.paper .labNavTeacher {
+  display: block;
+  margin: 12px 6px 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.paper .labNavTeacher:hover {
+  color: var(--blue);
+}
+
+/* ---------- content ---------- */
+.paper .labMain {
+  min-width: 0;
+}
+
+.paper .labCard {
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+
+.paper .labKicker {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--blue);
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.paper .labLead {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 6px 0 20px;
+  max-width: 68ch;
+}
+
+.paper .labTwoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.paper .labPath {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.paper .labPathStep {
+  font-size: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 20px;
+  padding: 5px 12px;
+}
+
+.paper .labPathStep:not(:last-child)::after {
+  content: ' →';
+  color: var(--muted);
+}
+
+.paper .labPathStep:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.paper .labActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.paper .labPrevNext {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* theory */
+.paper .labVideo {
+  margin: 10px 0 18px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 10px 14px;
+}
+
+.paper .labVideo summary {
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.paper .labVideo[open] summary {
+  margin-bottom: 12px;
+}
+
+.paper .theoryBlock {
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.paper .theoryBlock:first-of-type {
+  border-top: 0;
+}
+
+.paper .theoryBlock h2 {
+  font-family: 'Lora', serif;
+  font-size: 17px;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+
+.paper .theoryBlock p,
+.paper .theoryBlock li {
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 70ch;
+}
+
+.paper .theoryBlock p {
+  margin: 0 0 10px;
+}
+
+.paper .theoryBlock ul {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+
+.paper .theoryFormula {
+  font-family: 'Lora', serif;
+  font-size: 16px;
+  background: var(--blue-soft);
+  border-left: 3px solid var(--blue);
+  padding: 10px 14px;
+  margin: 6px 0 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.paper .theoryNote {
+  color: var(--muted);
+  font-size: 13px !important;
+}
+
+/* procedure */
+.paper .procList {
+  margin: 12px 0 20px;
+  padding: 0;
+  list-style: none;
+  counter-reset: proc;
+}
+
+.paper .procList li {
+  counter-increment: proc;
+  position: relative;
+  padding: 10px 0 10px 40px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.paper .procList li::before {
+  content: counter(proc);
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* assessments */
+.paper .assess {
+  margin-top: 8px;
+  max-width: 640px;
+}
+
+.paper .assessProgress {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.paper .assessDot {
+  height: 4px;
+  flex: 1;
+  background: var(--line);
+  border-radius: 2px;
+}
+
+.paper .assessDot.done {
+  background: var(--blue);
+}
+
+.paper .assessDot.current {
+  background: var(--rust);
+}
+
+.paper .qOpt.picked {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+}
+
+.paper .scoreCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 520px;
+  margin: 4px 0 6px;
+}
+
+.paper .scoreRow {
+  display: grid;
+  grid-template-columns: 150px 1fr 70px;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.paper .scoreTrack {
+  height: 10px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.paper .scoreFill {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+  transition: width 0.5s ease;
+}
+
+.paper .scoreVal {
+  text-align: right;
+}
+
+/* references */
+.paper .refList {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+
+.paper .refList li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.paper .refList a {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--blue);
+}
+
+.paper .refList span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* the simulation pages bring their own .paper section: drop its outer spacing inside the lab */
+.paper.lab .labMain > .paper > h1 {
+  margin-top: 0;
+}
+
+/* ---------- small screens: sidebar becomes a scrollable strip ---------- */
+@media (max-width: 860px) {
+  .paper.lab {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .paper .labNav {
+    position: static;
+    padding: 8px;
+    min-width: 0;
+  }
+
+  .paper .labNavHead,
+  .paper .labNavTeacher {
+    display: none;
+  }
+
+  .paper .labNavList {
+    display: flex;
+    overflow-x: auto;
+    gap: 4px;
+  }
+
+  .paper .labNavItem {
+    white-space: nowrap;
+    border-left: 0;
+    border-bottom: 3px solid transparent;
+  }
+
+  .paper .labNavItem.active {
+    border-bottom-color: var(--blue);
+  }
+
+  .paper .labCard {
+    padding: 18px 16px;
+  }
+
+  .paper .labTwoCol {
+    grid-template-columns: 1fr;
+  }
+
+  .paper .scoreRow {
+    grid-template-columns: 1fr 70px;
+  }
+
+  .paper .scoreTrack {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

@@ -1,17 +1,23 @@
 import { Link, useParams } from 'react-router-dom'
 import { TOPICS } from '../data/topics.js'
-import { useSession } from '../context/SessionContext.jsx'
+import { scoreOn, useSession } from '../context/SessionContext.jsx'
+import { PRETEST_ITEMS } from '../data/labContent.js'
 import NotFound from './NotFound.jsx'
 import '../styles/paper.css'
 
 function SummaryPage() {
   const { topicId } = useParams()
-  const { getSession } = useSession()
+  const { getSession, getAssessment } = useSession()
   const topic = TOPICS[topicId]
 
   if (!topic) return <NotFound />
 
   const session = getSession(topicId)
+  const a = getAssessment(topicId)
+  const preItems = PRETEST_ITEMS[topicId] || []
+  const pre = scoreOn(a.pre, preItems)
+  const postSame = scoreOn(a.post, preItems)
+  const fmt = (sc) => (sc ? `${sc.correct} / ${sc.total}` : 'not taken')
 
   return (
     <section className="paper">
@@ -26,7 +32,15 @@ function SummaryPage() {
           <b>{session.steps}</b>
         </div>
         <div className="sumStat">
-          <span>Quiz score</span>
+          <span>Pretest</span>
+          <b>{fmt(pre)}</b>
+        </div>
+        <div className="sumStat">
+          <span>Same questions in the posttest</span>
+          <b>{fmt(postSame)}</b>
+        </div>
+        <div className="sumStat">
+          <span>Full posttest score</span>
           <b>
             {session.quizCorrect} / {session.quizTotal}
           </b>

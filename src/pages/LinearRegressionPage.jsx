@@ -26,9 +26,12 @@ function LinearRegressionPage() {
       <RestartLessonButton onRestart={handleRestart} />
       <LinearRegression key={runId} onStepsChange={handleStepsChange} onStateDescription={setStateDescription} />
       <AIAssistantPanel topic={TOPIC_ID} stateDescription={stateDescription} />
-      <div className="quizCta">
-        <Link className="primaryBtn" to={`/topic/${TOPIC_ID}/quiz`}>
-          Take the quiz
+      <div className="quizCta" style={{ gap: 10 }}>
+        <Link className="ghostBtn" to="/linear-regression/sandbox">
+          Try your own data (sandbox)
+        </Link>
+        <Link className="primaryBtn" to={`/topic/${TOPIC_ID}/posttest`}>
+          Go to the posttest →
         </Link>
       </div>
     </section>

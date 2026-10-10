@@ -9,6 +9,8 @@ import {
   MIN_POINTS,
   computeBounds,
   countDistinct,
+  elbowCurve,
+  findElbow,
   parseTwoColumnCsv,
   seedCentroids,
   validatePoints,
@@ -283,6 +285,150 @@ function IterationNav({ current, visited, onJump }) {
 function totalSpread(points, sim) {
   if (sim.iter === 0 || sim.assign.some((a) => a === null)) return null
   return points.reduce((s, p, i) => s + dist(p, sim.centroids[sim.assign[i]]) ** 2, 0)
+}
+
+// ---------- elbow plot: was K a good choice? ----------
+const EW = 440
+const EH = 240
+const EPAD = { l: 56, r: 20, t: 18, b: 40 }
+
+function ElbowPanel({ points, isExample, k, onTryK }) {
+  const curve = useMemo(() => elbowCurve(points, isExample), [points, isExample])
+  const elbow = useMemo(() => findElbow(curve), [curve])
+  const [guess, setGuess] = useState(null)
+  const [hoverK, setHoverK] = useState(null)
+  const revealed = guess !== null
+
+  if (curve.length < 3) {
+    return <p className="note">The elbow plot needs at least 3 distinct points.</p>
+  }
+
+  const maxK = curve[curve.length - 1].k
+  const maxSse = curve[0].sse
+  const plotW = EW - EPAD.l - EPAD.r
+  const plotH = EH - EPAD.t - EPAD.b
+  const px = (kk) => EPAD.l + ((kk - 1) / (maxK - 1)) * plotW
+  const py = (v) => EPAD.t + plotH - (v / maxSse) * plotH
+  const path = curve.map((c, i) => `${i ? 'L' : 'M'}${px(c.k).toFixed(1)},${py(c.sse).toFixed(1)}`).join(' ')
+  const yTicks = [0, 0.5, 1].map((t) => t * maxSse)
+  const sseAt = (kk) => curve.find((c) => c.k === kk)?.sse
+  const hovered = hoverK !== null ? curve.find((c) => c.k === hoverK) : null
+  const prevOfHovered = hovered && hovered.k > 1 ? sseAt(hovered.k - 1) : null
+
+  let feedback = null
+  if (revealed) {
+    if (guess === elbow) feedback = { cls: 'fbGood', tag: 'Yes', text: `The curve bends at K = ${elbow}. Up to there, each extra cluster cuts the spread a lot; after it, extra clusters only shave off a little.` }
+    else if (guess === 'skip') feedback = { cls: '', tag: 'The bend', text: `The curve bends at K = ${elbow}. Up to there, each extra cluster cuts the spread a lot; after it, extra clusters only shave off a little.` }
+    else feedback = { cls: 'fbBad', tag: 'Look again', text: `The sharpest bend is at K = ${elbow}. Compare how much the spread drops just before K = ${elbow} with how much it drops just after it.` }
+  }
+
+  return (
+    <div className="elbowPanel">
+      <p className="sectionLabel">Was K = {k} a good choice? The elbow plot</p>
+      <p className="note">
+        K-Means was run for every K from 1 to {maxK} on this same data (keeping the best of several starts), and each
+        run&apos;s total spread (SSE) is plotted below. SSE keeps shrinking as K grows, so the lowest point is not the
+        answer. Look for the <b>elbow</b>: the K after which adding another cluster stops helping much.
+      </p>
+      <svg
+        viewBox={`0 0 ${EW} ${EH}`}
+        className="elbowSvg"
+        role="img"
+        aria-label={`Elbow plot: total spread for K = 1 to ${maxK}. ${curve.map((c) => `K ${c.k}: ${c.sse.toFixed(1)}`).join(', ')}.`}
+        onMouseLeave={() => setHoverK(null)}
+      >
+        {yTicks.map((v) => (
+          <g key={v}>
+            <line x1={EPAD.l} x2={EW - EPAD.r} y1={py(v)} y2={py(v)} stroke="var(--line)" strokeWidth="1" />
+            <text className="axLbl" x={EPAD.l - 8} y={py(v) + 3} textAnchor="end">
+              {v === 0 || v >= 10 ? v.toFixed(0) : v.toFixed(1)}
+            </text>
+          </g>
+        ))}
+        {curve.map((c) => (
+          <text key={`kx${c.k}`} className="axLbl" x={px(c.k)} y={EH - 20} textAnchor="middle">
+            {c.k}
+          </text>
+        ))}
+        <text className="axLbl" x={EPAD.l + plotW / 2} y={EH - 4} textAnchor="middle">
+          Number of clusters K
+        </text>
+        <text className="axLbl" x="12" y={EPAD.t + plotH / 2} textAnchor="middle" transform={`rotate(-90 12 ${EPAD.t + plotH / 2})`}>
+          Total spread (SSE)
+        </text>
+        {hovered && (
+          <line x1={px(hovered.k)} x2={px(hovered.k)} y1={EPAD.t} y2={EPAD.t + plotH} stroke="var(--muted)" strokeDasharray="3 3" />
+        )}
+        <path d={path} fill="none" stroke="var(--blue)" strokeWidth="2" />
+        {revealed && elbow && (
+          <g>
+            <circle cx={px(elbow)} cy={py(sseAt(elbow))} r="13" fill="none" stroke="var(--good)" strokeWidth="2" />
+            <text x={px(elbow) - 16} y={py(sseAt(elbow)) - 14} textAnchor="end" className="elbowTag" fill="var(--good)">
+              elbow
+            </text>
+          </g>
+        )}
+        {curve.map((c) => (
+          <g key={c.k}>
+            <circle
+              cx={px(c.k)}
+              cy={py(c.sse)}
+              r={c.k === k ? 6 : 4.5}
+              fill={c.k === k ? 'var(--rust)' : 'var(--blue)'}
+              stroke="var(--paper-card)"
+              strokeWidth="2"
+            />
+            {c.k === k && (
+              <text x={px(c.k)} y={py(c.sse) - 12} textAnchor="middle" className="elbowTag" fill="var(--ink)">
+                your K
+              </text>
+            )}
+            <rect
+              x={px(c.k) - plotW / (maxK - 1) / 2}
+              y={EPAD.t}
+              width={plotW / (maxK - 1)}
+              height={plotH}
+              fill="transparent"
+              onMouseEnter={() => setHoverK(c.k)}
+            />
+          </g>
+        ))}
+      </svg>
+      <p className="elbowReadout" aria-live="polite">
+        {hovered
+          ? `K = ${hovered.k}: total spread ${hovered.sse.toFixed(2)}${prevOfHovered !== null && prevOfHovered !== undefined ? `, ${(prevOfHovered - hovered.sse).toFixed(2)} less than K = ${hovered.k - 1}` : ''}`
+          : 'Hover over the chart to read each value.'}
+      </p>
+      {!revealed ? (
+        <>
+          <p className="note">Where does the curve bend?</p>
+          <div className="elbowChoices">
+            {curve.slice(1, -1).map((c) => (
+              <button key={c.k} type="button" className="guessBtn" onClick={() => setGuess(c.k)}>
+                K = {c.k}
+              </button>
+            ))}
+            <button type="button" className="btnG" onClick={() => setGuess('skip')}>
+              Show me
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className={`annotation ${feedback.cls}`}>
+            <span className="tag">{feedback.tag}</span>
+            {feedback.text} The elbow is a rule of thumb, not a guarantee: always check whether the clusters make
+            sense for your problem.
+          </div>
+          {elbow !== k && K_OPTIONS.includes(elbow) && (
+            <button type="button" className="btnP" onClick={() => onTryK(elbow)}>
+              Run again with K = {elbow}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  )
 }
 
 function KMeansStages({ onStepsChange, onStateDescription, onExperiment } = {}) {
@@ -763,7 +909,10 @@ function KMeansStages({ onStepsChange, onStateDescription, onExperiment } = {}) 
               </button>
             ))}
           </div>
-          <p className="note">K is a hyperparameter. Try 2, 3 and 4 and watch what changes.</p>
+          <p className="note">
+            K is a hyperparameter. Try 2, 3 and 4 and watch what changes. After the run, an elbow plot shows how good
+            your choice was.
+          </p>
           {distinctCount < Math.max(...K_OPTIONS) && (
             <p className="note">Larger K values need more distinct points than your data has.</p>
           )}
@@ -966,6 +1115,7 @@ function KMeansStages({ onStepsChange, onStateDescription, onExperiment } = {}) 
                   : `Repeated assign and update until the ${MAX_ITERS} iteration limit, when the centres were still moving`}
               </li>
             </ol>
+            <ElbowPanel points={points} isExample={isExample} k={k} onTryK={changeK} />
             <div className="formalBox">
               <p className="formalLabel">Formal definition</p>
               <p className="formalTerm">Centroid update</p>

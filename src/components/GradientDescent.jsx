@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSessionState } from '../hooks/useSessionState.js'
 import { createSonifier } from '../utils/sound.js'
 import SoundToggle from './SoundToggle.jsx'
+import GradientDescentCompare from './GradientDescentCompare.jsx'
 import './GradientDescent.css'
 
 const range = (n) => Array.from({ length: n }, (_, i) => i + 1)
 
 // Each preset: 10 points, its own start point, heatmap window and mini-chart window.
-const PRESETS = [
+export const PRESETS = [
   {
     id: 'house',
     name: 'House prices',
@@ -70,10 +71,10 @@ const PRESETS = [
   },
 ]
 
-const MAX_STEPS = 10
-const LR_MIN = 0.05
-const LR_MAX = 1.2
-const LR_STEP = 0.05
+export const MAX_STEPS = 10
+export const LR_MIN = 0.05
+export const LR_MAX = 1.2
+export const LR_STEP = 0.05
 const LR_DEFAULT = 0.3
 const CONVERGED_WITHIN = 0.05
 const HIGH_ERROR_SHARE = 0.1
@@ -82,15 +83,15 @@ const INTRO = 'Press "Step forward" to begin. The starting point is deliberately
 const HIGH_ERROR_NOTE =
   ' The error stays high because no straight line fits scattered points well. Gradient descent found the best line there is.'
 
-const W = 560
-const H = 400
-const PAD = { l: 50, r: 20, t: 14, b: 36 }
-const plotW = W - PAD.l - PAD.r
-const plotH = H - PAD.t - PAD.b
+export const W = 560
+export const H = 400
+export const PAD = { l: 50, r: 20, t: 14, b: 36 }
+export const plotW = W - PAD.l - PAD.r
+export const plotH = H - PAD.t - PAD.b
 const GRID_X = 44
 const GRID_Y = 32
-const cellW = plotW / GRID_X
-const cellH = plotH / GRID_Y
+export const cellW = plotW / GRID_X
+export const cellH = plotH / GRID_Y
 
 function mseOf(X, Y, b1, b0) {
   let s = 0
@@ -167,13 +168,13 @@ function buildDataset(p) {
   return d
 }
 
-const DATASETS = Object.fromEntries(PRESETS.map((p) => [p.id, buildDataset(p)]))
+export const DATASETS = Object.fromEntries(PRESETS.map((p) => [p.id, buildDataset(p)]))
 const DATASET_IDS = PRESETS.map((p) => p.id)
 const DEFAULT_DATASET = 'house'
 
 const mseReal = (d, b1, b0) => mseOf(d.X, d.Y, b1, b0)
 
-function outsideChart(d, b1, b0) {
+export function outsideChart(d, b1, b0) {
   return b1 < d.B1_MIN || b1 > d.B1_MAX || b0 < d.B0_MIN || b0 > d.B0_MAX
 }
 
@@ -201,7 +202,7 @@ function gradNorm(d, mn, bn) {
   return [(2 * dm) / d.N, (2 * db) / d.N]
 }
 
-function initState(d) {
+export function initState(d) {
   const [mn, bn] = normFromReal(d, d.startB1, d.startB0)
   return {
     mn,
@@ -256,7 +257,7 @@ function diagnose(d, path, errs) {
   return 'unclear'
 }
 
-function advance(d, s, lr) {
+export function advance(d, s, lr) {
   const [prevB1] = realFromNorm(d, s.mn, s.bn)
   const prevMse = s.errs[s.errs.length - 1]
   const [dm, db] = gradNorm(d, s.mn, s.bn)
@@ -293,7 +294,7 @@ function replay(d, lr, steps) {
   return s
 }
 
-function starPoints(cx, cy) {
+export function starPoints(cx, cy) {
   const pts = []
   for (let i = 0; i < 10; i++) {
     const r = i % 2 === 0 ? 7 : 3
@@ -406,7 +407,7 @@ function JumpNav({ current, onJump }) {
   )
 }
 
-const fmtErr = (v) => (v >= 100 ? v.toFixed(0) : v.toFixed(3))
+export const fmtErr = (v) => (v >= 100 ? v.toFixed(0) : v.toFixed(3))
 
 // One sentence describing how a run ended, for the experiment log.
 function summariseRun(d, lr, run) {
@@ -434,6 +435,7 @@ function GradientDescent({ onStateDescription, onExperiment } = {}) {
     0,
     (v) => Number.isInteger(v) && v >= 0 && v <= MAX_STEPS,
   )
+  const [mode, setMode] = useSessionState('mlx.gradient-descent.mode', 'single', (v) => v === 'single' || v === 'compare')
   // Restore by replaying from the starting point.
   const [state, setState] = useState(() => replay(d, lr, savedStep))
   const [running, setRunning] = useState(false)
@@ -565,7 +567,68 @@ function GradientDescent({ onStateDescription, onExperiment } = {}) {
     put(initState(DATASETS[id]))
   }
 
+  const datasetPicker = (
+    <div className="datasetPicker">
+      <div className="datasetRow" role="group" aria-label="Dataset">
+        {PRESETS.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className={`datasetBtn${p.id === datasetId ? ' active' : ''}`}
+            aria-pressed={p.id === datasetId}
+            onClick={() => handleDataset(p.id)}
+          >
+            {p.name}
+          </button>
+        ))}
+      </div>
+      <p className="note">{d.description}</p>
+    </div>
+  )
+
+  const modeTabs = (
+    <div className="gdModeTabs" role="tablist" aria-label="Simulation mode">
+      <button
+        type="button"
+        role="tab"
+        aria-selected={mode === 'single'}
+        className={`gdModeTab${mode === 'single' ? ' active' : ''}`}
+        onClick={() => setMode('single')}
+      >
+        One descent, step by step
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={mode === 'compare'}
+        className={`gdModeTab${mode === 'compare' ? ' active' : ''}`}
+        onClick={() => {
+          setRunning(false)
+          setMode('compare')
+        }}
+      >
+        Compare learning rates
+      </button>
+    </div>
+  )
+
+  if (mode === 'compare') {
+    return (
+      <>
+        {modeTabs}
+        <GradientDescentCompare
+          d={d}
+          datasetPicker={datasetPicker}
+          onExperiment={onExperiment}
+          onStateDescription={onStateDescription}
+        />
+      </>
+    )
+  }
+
   return (
+    <>
+    {modeTabs}
     <div className="gd">
       <div className="gd-controls">
         <div className="btnCol">
@@ -610,22 +673,7 @@ function GradientDescent({ onStateDescription, onExperiment } = {}) {
       </div>
 
       <div className="gd-main">
-        <div className="datasetPicker">
-          <div className="datasetRow" role="group" aria-label="Dataset">
-            {PRESETS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className={`datasetBtn${p.id === datasetId ? ' active' : ''}`}
-                aria-pressed={p.id === datasetId}
-                onClick={() => handleDataset(p.id)}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
-          <p className="note">{d.description}</p>
-        </div>
+        {datasetPicker}
         <div className="chartRow">
           <span className="chartTitle">Error surface: every possible slope × intercept</span>
           <div className="readouts">
@@ -664,6 +712,7 @@ function GradientDescent({ onStateDescription, onExperiment } = {}) {
         <JumpNav current={state.step} onJump={handleJump} />
       </div>
     </div>
+    </>
   )
 }
 

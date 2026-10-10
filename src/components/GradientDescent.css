@@ -299,3 +299,135 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+
+/* ---------- mode tabs ---------- */
+.gdModeTabs {
+  display: flex;
+  gap: 0;
+  margin: 0 0 -1px;
+}
+
+.gdModeTab {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 16px;
+  border: 1px solid #dcd5c0;
+  background: #f3efe4;
+  color: #726c5d;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  margin-right: 4px;
+}
+
+.gdModeTab.active {
+  background: #fcfaf4;
+  color: #2f5d8a;
+  border-bottom-color: #fcfaf4;
+  font-weight: 600;
+}
+
+/* ---------- compare learning rates ---------- */
+.gd.gd--compare {
+  display: block;
+  padding: 18px 20px;
+}
+
+.gd .gdcRates {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 6px 0 14px;
+}
+
+.gd .gdcRate {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 10px 12px;
+  border-radius: 5px;
+}
+
+.gd .gdcRate input[type='range'] {
+  width: 100%;
+}
+
+.gd .gdcPredict {
+  margin-bottom: 10px;
+}
+
+.gd .btnRowH {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.gd .btnRowH button {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.gd .gdcCharts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.gd .gdcReadout {
+  min-height: 18px;
+  margin: 2px 0 8px;
+}
+
+.gd .gdcTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.gd .gdcTable th,
+.gd .gdcTable td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.gd .gdcSwatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 4px;
+}
+
+@media (max-width: 900px) {
+  .gd .gdcRates,
+  .gd .gdcCharts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gd .annotation.fbGood {
+  background: #e4f0e8;
+  border-left-color: #3f7d53;
+}
+
+.gd .annotation.fbBad {
+  background: #f3e4df;
+  border-left-color: #a6462d;
+}
+
+.gd svg.gdcKey {
+  width: 30px;
+  height: 10px;
+  flex: none;
+}
